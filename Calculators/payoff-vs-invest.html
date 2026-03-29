@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="version" content="1.00">
+<meta name="version" content="1.10">
 <meta name="author" content="Sam Vishwas">
-<title>Dhurandhar's Dilemma v1.00 — Pay Off vs. Invest</title>
+<title>Dhurandhar's Dilemma v1.10 — Pay Off vs. Invest</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -209,7 +209,24 @@ input[type=range].infl-r::-webkit-slider-thumb{background:var(--infl);box-shadow
 .b-check{position:absolute;top:6px;left:6px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:#fff;opacity:0;transition:opacity .2s}
 .bench-item.selected .b-check{opacity:1}
 
-/* schedule table */
+/* schedule loan info bar */
+.sched-loan-info{display:flex;align-items:center;gap:0;font-size:.69rem;font-family:var(--mono);color:var(--text2);white-space:nowrap;flex-wrap:wrap;row-gap:2px}
+.sli-group{display:flex;align-items:center;gap:5px;padding:2px 8px}
+.sli-group:first-child{padding-left:0}
+.sli-sep{color:var(--border);font-size:1rem;line-height:1;padding:0 2px}
+.sli-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;opacity:.6}
+.sli-val{font-weight:500;color:var(--text)}
+.sli-val.rem{color:var(--accent)}
+/* schedule toolbar pills */
+.sched-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:.69rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;user-select:none}
+.sched-pill:hover{border-color:var(--accent);color:var(--accent)}
+.sched-pill.active{background:var(--accent-lt);border-color:var(--accent);color:var(--accent)}
+.sched-pill.csv-pill{border-color:var(--adv);color:var(--adv)}
+.sched-pill.csv-pill:hover{background:var(--adv);color:#fff;border-color:var(--adv)}
+.sched-pill svg{width:10px;height:10px;flex-shrink:0}
+.sched-toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+table.sched tr.past-row td{opacity:.45}
+table.sched tr.past-row td:first-child{color:var(--text2);font-style:normal}
 .tbl-wrap{overflow-x:auto;max-height:460px}
 .tbl-wrap::-webkit-scrollbar{width:5px;height:5px}
 .tbl-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
@@ -422,9 +439,9 @@ table.sched tbody tr:hover td{background:var(--surface2)}
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
           Loan Details <span class="sb-badge b-req">Required</span>
         </div>
-        <svg class="sb-chev open" id="loan-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <svg class="sb-chev" id="loan-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
-      <div class="sb-body" id="loan-body" style="max-height:900px">
+      <div class="sb-body" id="loan-body" style="max-height:0">
         <div style="padding:2px 4px 10px">
           <div class="cg">
             <div class="lr"><label>Original Loan Amount ($)</label><input type="number" id="origBal" class="ti" value="300000" min="1000" max="5000000" step="5000" oninput="update()"></div>
@@ -432,7 +449,7 @@ table.sched tbody tr:hover td{background:var(--surface2)}
           </div>
           <div class="cg">
             <div class="lr"><label>Origination Date</label></div>
-            <input type="month" id="origDate" class="ti full" value="2012-01" oninput="update()" style="text-align:left">
+            <input type="month" id="origDate" class="ti full" value="2011-01" oninput="update()" style="text-align:left">
           </div>
           <div class="cg">
             <div class="lr"><label>Mortgage APR (%)</label><input type="number" id="aprT" class="ti" value="4.45" min="0.1" max="20" step="0.05" oninput="update()"></div>
@@ -470,6 +487,10 @@ table.sched tbody tr:hover td{background:var(--surface2)}
           <div class="cg">
             <div class="lr"><label>Lump Sum to Deploy ($)</label><input type="number" id="lumpSum" class="ti adv-i" placeholder="= Balance" oninput="update()"></div>
             <p class="hint">Defaults to current balance.</p>
+          </div>
+          <div class="cg">
+            <div class="lr"><label>Deploy Year</label><input type="number" id="deployYr" class="ti adv-i" placeholder="= Now" min="2020" max="2060" step="1" oninput="update()"></div>
+            <p class="hint">Year you deploy the lump sum. Leave blank to deploy immediately. Years before deployment show $0 investment value.</p>
           </div>
           <div class="cg">
             <div class="lr"><label>Extra Monthly Payment ($)</label><input type="number" id="extraPmt" class="ti adv-i" value="0" min="0" step="50" oninput="update()"></div>
@@ -516,8 +537,8 @@ table.sched tbody tr:hover td{background:var(--surface2)}
             <input type="text" id="loanName" class="ti full" placeholder="e.g. Primary Residence — 30yr Fixed" oninput="update()">
           </div>
           <div class="cg">
-            <div class="lr"><label>Birth Year</label><input type="number" id="birthYr" class="ti" value="1985" min="1930" max="2005" oninput="update()"></div>
-            <p class="hint">Adds an age column to the schedule.</p>
+            <div class="lr"><label>Birth Year</label><input type="number" id="birthYr" class="ti" placeholder="e.g. 1985" min="1930" max="2005" oninput="update()"></div>
+            <p class="hint">Adds an Age column to the schedule. Clear to hide it.</p>
           </div>
         </div>
       </div>
@@ -532,9 +553,9 @@ table.sched tbody tr:hover td{background:var(--surface2)}
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
           Display
         </div>
-        <svg class="sb-chev open" id="disp-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <svg class="sb-chev" id="disp-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
-      <div class="sb-body" id="disp-body" style="max-height:200px">
+      <div class="sb-body" id="disp-body" style="max-height:0">
         <div style="padding:4px 4px 10px">
           <div class="dm-toggle-row">
             <label class="dm-toggle">
@@ -556,11 +577,11 @@ table.sched tbody tr:hover td{background:var(--surface2)}
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="brand">
-      <h1><span class="dh">Dhurandhar's</span> Dilemma <span style="font-family:'DM Mono',monospace;font-size:.32em;color:var(--text2);font-style:normal;letter-spacing:.04em;vertical-align:middle;opacity:.5">v1.00</span></h1>
+      <h1><span class="dh">Dhurandhar's</span> Dilemma <span style="font-family:'DM Mono',monospace;font-size:.32em;color:var(--text2);font-style:normal;letter-spacing:.04em;vertical-align:middle;opacity:.5">v1.10</span></h1>
       <div class="tagline">Sample numbers are already loaded — hit <strong style="color:var(--accent);cursor:pointer" onclick="openSidebar()">Configure ⚙</strong> to make it yours, or scroll down and let the math surprise you. 🎯</div>
       <div class="meta-row">
         <span class="user-label" id="userLabel"></span>
-        <a class="yt-link" href="https://www.youtube.com/@SamVishwas" target="_blank" rel="noopener">
+        <a class="yt-link" href="https://youtu.be/w0aGzEHiR34" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
           Watch Dhurandhar's Dilemma on YouTube
         </a>
@@ -585,17 +606,17 @@ table.sched tbody tr:hover td{background:var(--surface2)}
 
   <!-- KPIs -->
   <div class="card" id="sec-kpi">
-    <div class="card-hdr expanded" onclick="cardToggle('kpi')">
+    <div class="card-hdr collapsed" onclick="cardToggle('kpi')">
       <div class="card-hdr-title">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         Summary
       </div>
       <div class="card-hdr-right">
         <span class="card-hdr-meta" id="kpiMeta"></span>
-        <svg class="card-chev open" id="kpi-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <svg class="card-chev" id="kpi-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
     </div>
-    <div class="card-body open" id="kpi-body" style="max-height:4000px">
+    <div class="card-body" id="kpi-body" style="max-height:0">
       <div class="card-inner" style="padding-bottom:14px">
         <div class="kpi-grid" id="kpiGrid"></div>
         <div class="bench-kpi-wrap" id="benchKpiWrap" style="margin-top:14px"></div>
@@ -605,14 +626,14 @@ table.sched tbody tr:hover td{background:var(--surface2)}
 
   <!-- VERDICT + CHARTS -->
   <div class="card" id="sec-verdict">
-    <div class="card-hdr expanded" onclick="cardToggle('verdict')">
+    <div class="card-hdr collapsed" onclick="cardToggle('verdict')">
       <div class="card-hdr-title">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         Analysis &amp; Charts
       </div>
-      <svg class="card-chev open" id="verdict-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      <svg class="card-chev" id="verdict-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
-    <div class="card-body open" id="verdict-body" style="max-height:4000px">
+    <div class="card-body" id="verdict-body" style="max-height:0">
       <div class="verdict-wrap" id="verdictWrap"></div>
       <div class="charts-row">
         <div>
@@ -629,17 +650,17 @@ table.sched tbody tr:hover td{background:var(--surface2)}
 
   <!-- BENCHMARKS -->
   <div class="card" id="sec-bench">
-    <div class="card-hdr expanded" onclick="cardToggle('bench')">
+    <div class="card-hdr collapsed" onclick="cardToggle('bench')">
       <div class="card-hdr-title">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         Investment Benchmarks
       </div>
       <div class="card-hdr-right">
         <span class="card-hdr-meta" id="benchMeta"></span>
-        <svg class="card-chev open" id="bench-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <svg class="card-chev" id="bench-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
     </div>
-    <div class="card-body open" id="bench-body" style="max-height:4000px">
+    <div class="card-body" id="bench-body" style="max-height:0">
       <div class="card-inner">
         <div style="font-size:.75rem;color:var(--text2);margin-bottom:12px" id="benchSubTxt">Click to select/deselect. My Own is always active. Edit ✏ to customize name &amp; return.</div>
         <div class="bench-grid" id="benchGrid"></div>
@@ -649,17 +670,32 @@ table.sched tbody tr:hover td{background:var(--surface2)}
 
   <!-- SCHEDULE -->
   <div class="card" id="sec-sched">
-    <div class="card-hdr expanded" onclick="cardToggle('sched')">
+    <div class="card-hdr collapsed" onclick="cardToggle('sched')">
       <div class="card-hdr-title">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         Year-by-Year Schedule
       </div>
       <div class="card-hdr-right">
         <span class="card-hdr-meta" id="schedMeta"></span>
-        <svg class="card-chev open" id="sched-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="sched-loan-info" id="schedLoanInfo"></div>
+        <div class="sched-toolbar" onclick="event.stopPropagation()">
+          <button class="sched-pill" id="ageToggleBtn" onclick="toggleAgeCol()" title="Toggle Age column">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Age
+          </button>
+          <button class="sched-pill" id="pastToggleBtn" onclick="togglePastRows()" title="Show/hide past years">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>
+            Past
+          </button>
+          <button class="sched-pill csv-pill" onclick="exportCSV()" title="Export to CSV">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            CSV
+          </button>
+        </div>
+        <svg class="card-chev" id="sched-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
     </div>
-    <div class="card-body open" id="sched-body" style="max-height:4000px">
+    <div class="card-body" id="sched-body" style="max-height:0">
       <div class="tbl-wrap" style="padding:0">
         <table class="sched">
           <thead><tr id="schedHead"></tr></thead>
@@ -707,7 +743,7 @@ table.sched tbody tr:hover td{background:var(--surface2)}
   <footer class="site-footer">
     <span>© 2026 Sam Vishwas</span>
     <span class="sep">·</span>
-    <a class="yt-ft" href="https://www.youtube.com/@SamVishwas" target="_blank" rel="noopener">▶ Follow on YouTube</a>
+    <a class="yt-ft" href="https://www.youtube.com/@SamVishwas" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13" style="vertical-align:middle;margin-right:3px"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>Follow on YouTube</a>
     <span class="sep">·</span>
     <span>For educational purposes only — not financial advice.</span>
   </footer>
@@ -719,6 +755,38 @@ const $=id=>document.getElementById(id);
 const fmt=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
 const fmtp=n=>(n>=0?'+':'')+n.toFixed(2)+'%';
 let chartMain,chartGrowth,chartIG,chartID,isDark=false;
+let showAgeCol=false,showPastRows=false;
+
+/* ── SCHEDULE TOGGLES ── */
+function toggleAgeCol(){
+  showAgeCol=!showAgeCol;
+  $('ageToggleBtn').classList.toggle('active',showAgeCol);
+  update();
+}
+function togglePastRows(){
+  showPastRows=!showPastRows;
+  $('pastToggleBtn').classList.toggle('active',showPastRows);
+  update();
+}
+
+/* ── CSV EXPORT ── */
+function exportCSV(){
+  const rows=[];
+  // header from thead
+  const ths=[...$('schedHead').querySelectorAll('th')];
+  rows.push(ths.map(th=>'"'+th.textContent.trim()+'"').join(','));
+  // body rows
+  const trs=[...$('schedBody').querySelectorAll('tr')];
+  trs.forEach(tr=>{
+    const tds=[...tr.querySelectorAll('td')];
+    rows.push(tds.map(td=>'"'+td.textContent.trim().replace(/"/g,'""')+'"').join(','));
+  });
+  const csv=rows.join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='dhurandhars-dilemma-schedule.csv';
+  a.click();
+}
 
 /* ── BENCHMARKS STATE ── */
 const BENCH_DEFS=[
@@ -883,7 +951,7 @@ function resolveColor(cssVar){
 /* ── MAIN UPDATE ── */
 function update(){
   const origP  =parseFloat($('origBal').value)||300000;
-  const origStr=$('origDate').value||'2012-01';
+  const origStr=$('origDate').value||'2011-01';
   const apr    =parseFloat($('aprT').value)||4.45;
   const termYrs=parseInt($('yrT').value)||30;
   const roi    =parseFloat($('roiT').value)||10;
@@ -898,12 +966,16 @@ function update(){
   const own=benches.find(b=>b.id==='own');
   if(own)own.ret=roi;
 
-  // elapsed months
+  // elapsed months — snap to whole completed years so Y-b-Y starts at Jan of the current year
   const origDate=new Date(origStr+'-01');
   const today=new Date();
   const totalMos=termYrs*12;
-  const mElapsed=Math.max(0,(today.getFullYear()-origDate.getFullYear())*12+(today.getMonth()-origDate.getMonth()));
+  const mElapsedRaw=Math.max(0,(today.getFullYear()-origDate.getFullYear())*12+(today.getMonth()-origDate.getMonth()));
+  const eYrs=Math.floor(mElapsedRaw/12),eMos=mElapsedRaw%12;
+  // snap balance to end of last completed year (Jan 1 of current year)
+  const mElapsed=eYrs*12;
   const mRemaining=Math.max(0,totalMos-mElapsed);
+  const rYrs=Math.floor(mRemaining/12),rMos=mRemaining%12;
 
   // current balance
   let curBal;
@@ -911,8 +983,7 @@ function update(){
   if(!isNaN(cbOvr)&&cbOvr>0){
     curBal=cbOvr;
   } else {
-    const auto=calcBalAt(origP,apr/100,totalMos,mElapsed);
-    curBal=(origP===300000&&origStr==='2012-01'&&apr===4.45&&termYrs===30)?250000:Math.max(0,auto);
+    curBal=Math.max(0,calcBalAt(origP,apr/100,totalMos,mElapsed));
   }
 
   let lump=parseFloat($('lumpSum').value);
@@ -922,9 +993,9 @@ function update(){
   const stdPmt=calcPmt(origP,apr/100,totalMos);
   const totalPmt=stdPmt+extra;
   const yearsLeft=Math.ceil(mRemaining/12);
-  const startYear=today.getFullYear();
-  const eYrs=Math.floor(mElapsed/12),eMos=mElapsed%12;
-  const rYrs=Math.floor(mRemaining/12),rMos=mRemaining%12;
+  const startYear=origDate.getFullYear()+eYrs;
+  const deployYrRaw=parseInt($('deployYr').value);
+  const deployOffset=(!isNaN(deployYrRaw)&&deployYrRaw>startYear)?(deployYrRaw-startYear):0;
 
   // inflation Fisher
   const realROI=((1+roi/100)/(1+infl/100)-1)*100;
@@ -954,25 +1025,63 @@ function update(){
   let loanBal=curBal,cumInfl=1,totIntShared=0;
   const nomArr=[],realArr=[];
   let html='';
-  const ageCol=birthYr>0;
+  // age col: only show if user has birth year set AND toggled on
+  const ageCol=showAgeCol&&birthYr>0;
+  // sync Age pill state — disable pill if no birth year entered
+  const ageBtn=$('ageToggleBtn');
+  if(ageBtn){
+    ageBtn.disabled=birthYr<=0;
+    ageBtn.style.opacity=birthYr<=0?'.35':'1';
+    ageBtn.title=birthYr<=0?'Enter Birth Year in Personalize to enable':'Toggle Age column';
+    ageBtn.classList.toggle('active',ageCol);
+  }
 
   // build table header
   let hh=`<th>Yr</th>`;
   if(ageCol)hh+=`<th class="age-th">Age</th>`;
-  hh+=`<th>Year</th><th>Loan Bal</th><th>Interest</th><th>Principal</th>`;
+  hh+=`<th>Year</th><th>Open Bal</th><th>Principal</th><th>Interest</th><th>Total Pmt</th><th>Rem Bal</th>`;
   selected.forEach(b=>hh+=`<th style="color:${b.color}">${b.label} Value</th>`);
   if(inflOn)hh+=`<th class="infl-th">Real (${selected[0].label})</th>`;
   hh+=`<th>Net Adv (${selected[0].label})</th>`;
   $('schedHead').innerHTML=hh;
 
-  // per-benchmark state
+  // per-benchmark state — inv is 0 until deploy year, then starts at lump
   const bState={};
-  selected.forEach(b=>{bState[b.id]={inv:lump,cumInfl:1}});
+  selected.forEach(b=>{bState[b.id]={inv:0}});
+
+  // ── PAST ROWS (elapsed years, re-amortized from origination) ──
+  if(showPastRows&&eYrs>0){
+    let pastBal=origP;
+    const origYear=origDate.getFullYear();
+    const pastColspan=1+(ageCol?1:0)+7+selected.length+(inflOn?1:0)+1;
+    for(let py=1;py<=eYrs;py++){
+      let pyInt=0,pyPrin=0;
+      const pyOpen=pastBal;
+      for(let m=0;m<12;m++){
+        const mi=pastBal*r;
+        let mp=stdPmt-mi;
+        if(mp>pastBal)mp=pastBal;
+        pyInt+=mi;pyPrin+=mp;
+        pastBal=Math.max(0,pastBal-mp);
+      }
+      const pCalYear=origYear+py-1;
+      const pAge=ageCol?(pCalYear-birthYr):null;
+      let prow=`<td>${py}</td>`;
+      if(ageCol)prow+=`<td class="age-td">${pAge}</td>`;
+      prow+=`<td>${pCalYear}</td><td>${fmt(pyOpen)}</td><td>${fmt(pyPrin)}</td><td class="ci">${fmt(pyInt)}</td><td>${fmt(pyPrin+pyInt)}</td><td>${fmt(Math.max(0,pastBal))}</td>`;
+      selected.forEach(()=>prow+=`<td>—</td>`);
+      if(inflOn)prow+=`<td>—</td>`;
+      prow+=`<td>—</td>`;
+      html+=`<tr class="past-row">${prow}</tr>`;
+    }
+    // divider row
+    html+=`<tr><td colspan="${pastColspan}" style="background:var(--surface2);text-align:center;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);padding:5px;border-bottom:2px solid var(--border)">▲ Past &nbsp;·&nbsp; Today ▼</td></tr>`;
+  }
 
   for(let y=1;y<=yearsLeft;y++){
     let yInt=0,yPrin=0;
     const mInYear=Math.min(12,mRemaining-(y-1)*12);
-    const lbStart=loanBal;
+    const yOpen=loanBal;
     for(let m=0;m<mInYear;m++){
       const mi=loanBal*r;
       let mp=totalPmt-mi;
@@ -988,16 +1097,26 @@ function update(){
     labels.push("'"+String(calYear).slice(2));
     nomArr.push(0);realArr.push(0);
 
-    let row=`<td>${y}</td>`;
+    const isLastYear=(y===yearsLeft);
+    const remBal=isLastYear?0:Math.max(0,loanBal);
+    let row=`<td>${eYrs+y}</td>`;
     if(ageCol)row+=`<td class="age-td">${age}</td>`;
-    row+=`<td>${calYear}</td><td>${fmt(Math.max(0,loanBal))}</td><td class="ci">${fmt(yInt)}</td><td>${fmt(yPrin)}</td>`;
+    row+=`<td>${calYear}</td><td>${fmt(yOpen)}</td><td>${fmt(yPrin)}</td><td class="ci">${fmt(yInt)}</td><td>${fmt(yPrin+yInt)}</td><td>${fmt(remBal)}</td>`;
 
     selected.forEach((b,i)=>{
       const st=bState[b.id];
-      st.inv*=(1+b.ret/100);
-      if(i===0){nomArr[y-1]=Math.round(st.inv);realArr[y-1]=Math.round(st.inv/cumInfl);}
-      row+=`<td style="color:${b.color}">${fmt(st.inv)}</td>`;
-      seriesData[b.id].inv.push(Math.round(st.inv));
+      if(y<=deployOffset){
+        // lump sum not yet deployed — sitting as cash
+        if(i===0){nomArr[y-1]=0;realArr[y-1]=0;}
+        row+=`<td style="color:var(--text2);opacity:.45">—</td>`;
+        seriesData[b.id].inv.push(0);
+      } else {
+        if(st.inv===0)st.inv=lump; // first year of deployment — seed the principal
+        st.inv*=(1+b.ret/100);
+        if(i===0){nomArr[y-1]=Math.round(st.inv);realArr[y-1]=Math.round(st.inv/cumInfl);}
+        row+=`<td style="color:${b.color}">${fmt(st.inv)}</td>`;
+        seriesData[b.id].inv.push(Math.round(st.inv));
+      }
     });
 
     // net advantage for first selected
@@ -1011,7 +1130,25 @@ function update(){
     html+=`<tr>${row}</tr>`;
   }
   $('schedBody').innerHTML=html;
-  $('schedMeta').textContent=`${origStr} · ${fmt(curBal)} balance · ${rYrs}y ${rMos}m remaining`;
+  $('schedMeta').textContent=`${origStr} · ${fmt(curBal)} rem`;
+  $('schedLoanInfo').innerHTML=`
+    <div class="sli-group">
+      <span class="sli-label">Orig</span>
+      <span class="sli-val">${fmt(origP)}</span>
+      <span class="sli-label">@</span>
+      <span class="sli-val">${apr.toFixed(2)}%</span>
+      <span class="sli-label">${termYrs}yr</span>
+      <span class="sli-val">${origStr}</span>
+    </div>
+    <span class="sli-sep">|</span>
+    <div class="sli-group">
+      <span class="sli-label">Rem Bal</span>
+      <span class="sli-val rem">${fmt(curBal)}</span>
+      <span class="sli-label">Left</span>
+      <span class="sli-val rem">${rYrs}y ${rMos}m</span>
+      <span class="sli-label">Pmt</span>
+      <span class="sli-val">${fmt(stdPmt)}/mo</span>
+    </div>`;
 
   // final values per benchmark
   selected.forEach(b=>{

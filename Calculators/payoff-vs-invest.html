@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="version" content="1.10">
+<meta name="version" content="1.20">
 <meta name="author" content="Sam Vishwas">
-<title>Dhurandhar's Dilemma v1.10 — Pay Off vs. Invest</title>
+<title>Dhurandhar's Dilemma v1.20 — Pay Off vs. Invest</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -19,8 +19,8 @@
   --adv:#0e7490;--adv-bg:#ecfeff;
   --shadow:0 4px 24px rgba(0,0,0,.07);--radius:14px;--mono:'DM Mono',monospace;
   --sidebar-w:390px;
-  /* benchmark colors (colorblind-safe) */
-  --c-own:#b45309;--c-spy:#0072B2;--c-qqq:#009E73;--c-tsla:#D55E00;--c-btc:#CC79A7;
+  /* benchmark colors — official brand palette */
+  --c-own:#7c3aed;--c-spy:#1E3A8A;--c-qqq:#00B5CB;--c-tsla:#E31937;--c-btc:#F7931A;
 }
 [data-theme=dark]{
   --bg:#141210;--surface:#1e1c18;--surface2:#272420;--border:#3a3530;
@@ -29,7 +29,7 @@
   --infl:#a78bfa;--infl-bg:#1e1030;--infl-lt:#2d1f50;
   --adv:#22d3ee;--adv-bg:#0c1f22;
   --shadow:0 4px 32px rgba(0,0,0,.45);
-  --c-own:#f59e0b;--c-spy:#56B4E9;--c-qqq:#4ade80;--c-tsla:#E69F00;--c-btc:#f0abca;
+  --c-own:#a78bfa;--c-spy:#3b82f6;--c-qqq:#22d3ee;--c-tsla:#f87171;--c-btc:#fbbf24;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -75,10 +75,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .sb-chev.open{transform:rotate(180deg)}
 .sb-body{overflow:hidden;transition:max-height .35s ease}
 
-/* form */
-.cg{margin-bottom:13px}
+/* ── INFO ICONS & TOOLTIP ── */
+.info-icon{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1.5px solid var(--text2);color:var(--text2);font-size:.6rem;font-weight:700;font-family:'DM Mono',monospace;cursor:help;flex-shrink:0;line-height:1;font-style:normal;margin-left:5px;vertical-align:middle;transition:border-color .2s,color .2s,background .2s}
+.info-icon:hover{border-color:var(--adv);color:#fff;background:var(--adv)}
+#infoTip{position:fixed;background:#1a1714;color:#f0ece3;font-family:'DM Sans',sans-serif;font-size:.72rem;line-height:1.5;padding:7px 11px;border-radius:8px;width:210px;max-width:90vw;white-space:normal;pointer-events:none;opacity:0;transition:opacity .15s;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+[data-theme=dark] #infoTip{background:#f0ece3;color:#1a1714}
+#infoTip.visible{opacity:1}
+
+/* label row */
+.lr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
 .cg:last-child{margin-bottom:0}
-.lr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
 .lr label{font-size:.78rem;font-weight:500;color:var(--text2)}
 .ti{border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-family:var(--mono);font-size:.82rem;font-weight:500;color:var(--accent);background:var(--surface2);transition:border-color .2s,background .3s;outline:none;width:105px;text-align:right}
 .ti:focus{border-color:var(--accent);background:var(--accent-lt)}
@@ -118,7 +124,7 @@ input[type=range].infl-r::-webkit-slider-thumb{background:var(--infl);box-shadow
 .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
 .brand h1{font-family:'DM Serif Display',serif;font-size:clamp(1.6rem,3.5vw,2.3rem);line-height:1.1;letter-spacing:-.01em}
 .brand h1 .dh{font-style:italic;color:var(--accent)}
-.brand .tagline{font-size:.86rem;color:var(--text2);font-weight:300;margin-top:3px}
+.brand .tagline{font-size:.68rem;color:var(--text2);font-weight:400;margin-top:4px;opacity:.8;max-width:550px;line-height:1.4}
 .brand .meta-row{display:flex;align-items:center;gap:12px;margin-top:5px;flex-wrap:wrap}
 .brand .user-label{font-size:.76rem;color:var(--text2);font-style:italic}
 .yt-link{display:inline-flex;align-items:center;gap:5px;font-size:.73rem;font-weight:600;color:#ff0000;text-decoration:none;padding:3px 9px;border-radius:12px;border:1.5px solid #ff000033;background:#ff00000d;transition:all .2s;white-space:nowrap}
@@ -150,7 +156,7 @@ input[type=range].infl-r::-webkit-slider-thumb{background:var(--infl);box-shadow
 .card-inner{padding:18px}
 
 /* kpi row */
-.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:11px}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr 1.6fr 1fr 1fr;gap:11px}
 @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:500px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
 .kpi{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 13px;text-align:center;transition:background .3s}
@@ -159,16 +165,6 @@ input[type=range].infl-r::-webkit-slider-thumb{background:var(--infl);box-shadow
 .kpi .ks{font-size:.63rem;color:var(--text2);margin-top:2px}
 .kpi.pos .kv{color:var(--gain)}
 .kpi.neg .kv{color:var(--loss)}
-
-/* multi-benchmark kpi table */
-.bench-kpi-wrap{overflow-x:auto;margin-top:10px}
-.bench-kpi-table{border-collapse:collapse;font-size:.78rem;min-width:500px;width:100%}
-.bench-kpi-table th{padding:7px 12px;text-align:right;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);border-bottom:1px solid var(--border);white-space:nowrap}
-.bench-kpi-table th:first-child{text-align:left}
-.bench-kpi-table td{padding:7px 12px;text-align:right;font-family:var(--mono);font-size:.77rem;border-bottom:1px solid var(--border)}
-.bench-kpi-table td:first-child{text-align:left;font-weight:600}
-.bench-kpi-table tr:last-child td{border-bottom:none}
-.bench-kpi-table tbody tr:hover td{background:var(--surface2)}
 
 /* verdict */
 .verdict-wrap{display:flex;flex-direction:column;gap:8px;padding:18px}
@@ -209,7 +205,14 @@ input[type=range].infl-r::-webkit-slider-thumb{background:var(--infl);box-shadow
 .b-check{position:absolute;top:6px;left:6px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:#fff;opacity:0;transition:opacity .2s}
 .bench-item.selected .b-check{opacity:1}
 
-/* schedule loan info bar */
+/* ── BENCHMARK PILLS (in chart header) ── */
+.bench-pill-row{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.bench-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-family:'DM Sans',sans-serif;font-size:.69rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;user-select:none;color:var(--text2)}
+.bench-pill.active{color:#fff}
+.bench-pill.always-on{cursor:default}
+.bench-pill-edit{background:none;border:none;cursor:pointer;padding:1px 2px;display:inline-flex;align-items:center;opacity:.7;transition:opacity .2s;margin-left:2px}
+.bench-pill-edit:hover{opacity:1}
+.bench-pill-edit svg{width:9px;height:9px}
 .sched-loan-info{display:flex;align-items:center;gap:0;font-size:.69rem;font-family:var(--mono);color:var(--text2);white-space:nowrap;flex-wrap:wrap;row-gap:2px}
 .sli-group{display:flex;align-items:center;gap:5px;padding:2px 8px}
 .sli-group:first-child{padding-left:0}
@@ -319,11 +322,18 @@ table.sched tbody tr:hover td{background:var(--surface2)}
 .don-eureka{font-size:.75rem;color:var(--text2);font-style:italic;margin-bottom:16px}
 
 /* footer */
-.site-footer{text-align:center;font-size:.74rem;color:var(--text2);padding:2px 0 10px;display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap}
-.site-footer .sep{opacity:.4}
-.site-footer a{color:var(--accent);text-decoration:none;font-weight:500}
-.site-footer a:hover{text-decoration:underline}
-.site-footer .yt-ft{color:#ff0000;font-weight:600}
+.site-footer { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 4px 20px 24px; font-family: 'DM Sans', sans-serif; background: transparent; }
+.ft-disclaimer { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--loss); text-align: center; opacity: 0.85; }
+.ft-bottom { display: flex; align-items: center; justify-content: center; gap: 12px; font-size: .76rem; color: var(--text2); flex-wrap: wrap; }
+.ft-socials { display: flex; align-items: center; gap: 10px; }
+.ft-socials a { color: var(--text2); transition: all .2s; display: inline-flex; padding: 2px; }
+.ft-socials a:hover { transform: translateY(-2px); }
+.ft-socials a.gh:hover { color: #333; }
+[data-theme="dark"] .ft-socials a.gh:hover { color: #fff; }
+.ft-socials a.yt:hover { color: #ff0000; }
+.ft-socials a.in:hover { color: #0a66c2; }
+.ft-socials a.ig:hover { color: #e1306c; }
+.ft-socials svg { width: 16px; height: 16px; stroke-width: 2; }
 
 /* animations */
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -444,24 +454,24 @@ table.sched tbody tr:hover td{background:var(--surface2)}
       <div class="sb-body" id="loan-body" style="max-height:0">
         <div style="padding:2px 4px 10px">
           <div class="cg">
-            <div class="lr"><label>Original Loan Amount ($)</label><input type="number" id="origBal" class="ti" value="300000" min="1000" max="5000000" step="5000" oninput="update()"></div>
+            <div class="lr"><label>Original Loan Amount ($) <i class="info-icon" data-tip="The original principal when the mortgage was taken out. Used to compute the full amortization schedule from origination date.">i</i></label><input type="number" id="origBal" class="ti" value="300000" min="1000" max="5000000" step="5000" oninput="update()"></div>
             <input type="range" id="origBalR" min="10000" max="2000000" step="5000" value="300000" oninput="syncFromRange(this,'origBal')">
           </div>
           <div class="cg">
-            <div class="lr"><label>Origination Date</label></div>
+            <div class="lr"><label>Origination Date <i class="info-icon" data-tip="The month and year your mortgage started. Used to calculate how much time has elapsed and how much remains.">i</i></label></div>
             <input type="month" id="origDate" class="ti full" value="2011-01" oninput="update()" style="text-align:left">
           </div>
           <div class="cg">
-            <div class="lr"><label>Mortgage APR (%)</label><input type="number" id="aprT" class="ti" value="4.45" min="0.1" max="20" step="0.05" oninput="update()"></div>
-            <input type="range" id="aprR" min="0.1" max="20" step="0.05" value="4.45" oninput="syncFromRange(this,'aprT')">
+            <div class="lr"><label>Mortgage APR (%) <i class="info-icon" data-tip="Your annual percentage rate. Determines monthly payment and total interest cost. When you change APR, Expected Return updates to match — the fair breakeven baseline.">i</i></label><input type="number" id="aprT" class="ti" value="4.45" min="0.1" max="20" step="0.05" oninput="aprChanged()"></div>
+            <input type="range" id="aprR" min="0.1" max="20" step="0.05" value="4.45" oninput="$('aprT').value=this.value;aprChanged()">
           </div>
           <div class="cg">
-            <div class="lr"><label>Loan Term (Years)</label><input type="number" id="yrT" class="ti" value="30" min="1" max="30" step="1" oninput="update()"></div>
+            <div class="lr"><label>Loan Term (Years) <i class="info-icon" data-tip="Original mortgage term in years (e.g. 30). Combined with origination date to determine the payoff date.">i</i></label><input type="number" id="yrT" class="ti" value="30" min="1" max="30" step="1" oninput="update()"></div>
             <input type="range" id="yrR" min="1" max="30" step="1" value="30" oninput="syncFromRange(this,'yrT')">
           </div>
           <div class="cg">
-            <div class="lr"><label>Expected Return (%)</label><input type="number" id="roiT" class="ti" value="10" min="0" max="60" step="0.5" oninput="roiChanged()"></div>
-            <input type="range" id="roiR" min="0" max="60" step="0.5" value="10" oninput="syncFromRange(this,'roiT');roiChanged()">
+            <div class="lr"><label>Expected Return (%) <i class="info-icon" data-tip="Annualised return you expect from investing the lump sum. Defaults to your Mortgage APR — the exact breakeven point. Edit freely; changing this won't affect your APR.">i</i></label><input type="number" id="roiT" class="ti" value="4.45" min="0" max="60" step="0.5" oninput="roiChanged()"></div>
+            <input type="range" id="roiR" min="0" max="60" step="0.5" value="4.45" oninput="syncFromRange(this,'roiT');roiChanged()">
           </div>
         </div>
       </div>
@@ -481,20 +491,13 @@ table.sched tbody tr:hover td{background:var(--surface2)}
       <div class="sb-body" id="adv-body" style="max-height:0">
         <div style="padding:2px 4px 10px">
           <div class="cg">
-            <div class="lr"><label>Current Balance Override ($)</label><input type="number" id="curBal" class="ti adv-i" placeholder="Auto" oninput="update()"></div>
-            <p class="hint">Leave blank to auto-calculate from origination date.</p>
+            <div class="lr"><label>Current Balance Override ($) <i class="info-icon" data-tip="Override the auto-calculated balance. Use this if you have a refinanced loan, made extra payments, or have an exact payoff quote from your lender. Defaults live to computed balance.">i</i></label><input type="number" id="curBal" class="ti adv-i" placeholder="Computing…" oninput="this.dataset.userSet=this.value?'1':'';update()" onblur="if(!this.value)delete this.dataset.userSet"></div>
           </div>
           <div class="cg">
-            <div class="lr"><label>Lump Sum to Deploy ($)</label><input type="number" id="lumpSum" class="ti adv-i" placeholder="= Balance" oninput="update()"></div>
-            <p class="hint">Defaults to current balance.</p>
+            <div class="lr"><label>Lump Sum to Deploy ($) <i class="info-icon" data-tip="The amount you'd invest instead of paying off the mortgage. Defaults to your current balance — the classic apples-to-apples comparison.">i</i></label><input type="number" id="lumpSum" class="ti adv-i" placeholder="= Balance" oninput="update()"></div>
           </div>
           <div class="cg">
-            <div class="lr"><label>Deploy Year</label><input type="number" id="deployYr" class="ti adv-i" placeholder="= Now" min="2020" max="2060" step="1" oninput="update()"></div>
-            <p class="hint">Year you deploy the lump sum. Leave blank to deploy immediately. Years before deployment show $0 investment value.</p>
-          </div>
-          <div class="cg">
-            <div class="lr"><label>Extra Monthly Payment ($)</label><input type="number" id="extraPmt" class="ti adv-i" value="0" min="0" step="50" oninput="update()"></div>
-            <input type="range" min="0" max="5000" step="50" value="0" oninput="syncFromRange(this,'extraPmt')">
+            <div class="lr"><label>Deploy Month <i class="info-icon" data-tip="The month you plan to invest the lump sum. Defaults to today. If this date is after the mortgage end, the invest column will show no growth.">i</i></label><input type="month" id="deployMon" class="ti adv-i" oninput="update()" style="width:105px;text-align:left;font-family:var(--mono);font-size:.82rem"></div>
           </div>
           <div class="sb-divider"></div>
           <div class="toggle-row">
@@ -502,11 +505,11 @@ table.sched tbody tr:hover td{background:var(--surface2)}
               <input type="checkbox" id="inflToggle" onchange="toggleInflation()">
               <span class="toggle-track"></span>
             </label>
-            <span style="font-size:.78rem;font-weight:600;color:var(--infl)">Enable Inflation Adjustment</span>
+            <span style="font-size:.78rem;font-weight:600;color:var(--infl)">Enable Inflation Adjustment <i class="info-icon" data-tip="When on, investment growth uses real (inflation-adjusted) returns via the Fisher equation. Results show today's purchasing power, not nominal dollars.">i</i></span>
           </div>
           <div id="inflControls" style="display:none">
             <div class="cg">
-              <div class="lr"><label>Annual Inflation (%)</label><input type="number" id="inflT" class="ti infl-i" value="3.0" min="0" max="15" step="0.1" oninput="update()"></div>
+              <div class="lr"><label>Annual Inflation (%) <i class="info-icon" data-tip="Expected average annual CPI inflation. The US long-run average is ~2.5–3%. Live CPI is fetched automatically on load.">i</i></label><input type="number" id="inflT" class="ti infl-i" value="3.0" min="0" max="15" step="0.1" oninput="update()"></div>
               <input type="range" class="infl-r" min="0" max="15" step="0.1" value="3.0" oninput="syncFromRange(this,'inflT')">
               <p class="hint" id="inflHint"></p>
             </div>
@@ -529,16 +532,20 @@ table.sched tbody tr:hover td{background:var(--surface2)}
       <div class="sb-body" id="per-body" style="max-height:0">
         <div style="padding:2px 4px 10px">
           <div class="cg">
-            <div class="lr"><label>Your Name</label></div>
-            <input type="text" id="userName" class="ti full" placeholder="e.g. Sam" oninput="update()">
+            <div class="lr"><label>Your Name <i class="info-icon" data-tip="Optional. Appears as 'Dhurandhar's Analysis' in the page header. No data is sent anywhere.">i</i></label></div>
+            <input type="text" id="userName" class="ti full" placeholder="e.g. Dhurandhar" value="Dhurandhar" oninput="update()">
           </div>
           <div class="cg">
-            <div class="lr"><label>Loan Description</label></div>
-            <input type="text" id="loanName" class="ti full" placeholder="e.g. Primary Residence — 30yr Fixed" oninput="update()">
+            <div class="lr"><label>Loan Description <i class="info-icon" data-tip="Optional label shown below the title. Useful for distinguishing multiple scenarios.">i</i></label></div>
+            <input type="text" id="loanName" class="ti full" placeholder="e.g. Primary Residence Mortgage" value="Primary Residence Mortgage" oninput="update()">
           </div>
           <div class="cg">
-            <div class="lr"><label>Birth Year</label><input type="number" id="birthYr" class="ti" placeholder="e.g. 1985" min="1930" max="2005" oninput="update()"></div>
-            <p class="hint">Adds an Age column to the schedule. Clear to hide it.</p>
+            <div class="lr"><label>Birth Year <i class="info-icon" data-tip="Optional. Adds an Age column to the amortization schedule. Select from the dropdown — your age is auto-calculated from the year selected.">i</i></label>
+              <select id="birthYr" class="ti" style="width:115px;cursor:pointer" onchange="this.dataset.userSet='1';update()">
+                <option value="">— None —</option>
+              </select>
+            </div>
+            <p class="hint">Select to add an Age column to the schedule.</p>
           </div>
         </div>
       </div>
@@ -568,6 +575,32 @@ table.sched tbody tr:hover td{background:var(--surface2)}
       </div>
     </div>
 
+    <div class="sb-divider"></div>
+
+    <!-- API KEYS -->
+    <div class="sb-sec">
+      <div class="sb-sec-hdr" onclick="sbToggle('apikeys')">
+        <div class="sb-sec-title">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          API Keys <span class="sb-badge b-opt">Session only</span>
+        </div>
+        <svg class="sb-chev" id="apikeys-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="sb-body" id="apikeys-body" style="max-height:0">
+        <div style="padding:4px 4px 10px">
+          <p class="hint" style="margin-bottom:8px;color:var(--loss)">⚠ Keys are kept in memory only — cleared on page refresh. Never stored to disk.</p>
+          <div class="cg">
+            <div class="lr"><label>Financial Modeling Prep <i class="info-icon" data-tip="Required for stocks, ETFs and mutual funds. Get a free key at financialmodelingprep.com. 250 requests/day on the free tier.">i</i></label></div>
+            <input type="password" id="fmpApiKey" class="ti full" placeholder="Paste FMP API key…" oninput="window._fmpKey=this.value">
+            <p class="hint">Free key: <a href="https://financialmodelingprep.com/developer/docs" target="_blank" rel="noopener" style="color:var(--adv)">financialmodelingprep.com</a> · 250 req/day</p>
+          </div>
+          <div class="cg" style="margin-top:4px">
+            <p class="hint">CoinGecko (crypto) requires no key — always available.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /sb-scroll -->
 </div><!-- /sidebar -->
 
@@ -577,124 +610,114 @@ table.sched tbody tr:hover td{background:var(--surface2)}
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="brand">
-      <h1><span class="dh">Dhurandhar's</span> Dilemma <span style="font-family:'DM Mono',monospace;font-size:.32em;color:var(--text2);font-style:normal;letter-spacing:.04em;vertical-align:middle;opacity:.5">v1.10</span></h1>
-      <div class="tagline">Sample numbers are already loaded — hit <strong style="color:var(--accent);cursor:pointer" onclick="openSidebar()">Configure ⚙</strong> to make it yours, or scroll down and let the math surprise you. 🎯</div>
-      <div class="meta-row">
-        <span class="user-label" id="userLabel"></span>
-        <a class="yt-link" href="https://youtu.be/w0aGzEHiR34" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
-          Watch Dhurandhar's Dilemma on YouTube
+      <h1>
+        <span class="dh" id="brandName">Dhurandhar's</span> Dilemma
+        <span style="font-family:'DM Mono',monospace;font-size:.32em;color:var(--text2);font-style:normal;letter-spacing:.04em;vertical-align:middle;opacity:.5">v1.20</span>
+        <a href="https://youtu.be/w0aGzEHiR34" target="_blank" rel="noopener" title="Watch on YouTube" style="display:inline-flex;align-items:center;margin-left:8px;vertical-align:middle;color:#ff0000;text-decoration:none;opacity:.85;transition:opacity .2s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.85'">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
         </a>
-      </div>
+      </h1>
+      <div class="tagline">Sample numbers are already loaded, hit <strong style="color:var(--accent);cursor:pointer" onclick="openSidebar()">⚙</strong> to make it yours. Scroll down and let the math surprise you. 🎯</div>
       <div class="loan-desc" id="loanDesc"></div>
     </div>
     <div class="topbar-actions">
       <button class="btn-pill btn-involve" onclick="openDonateModal()" title="Get Involved">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        Get Involved
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>        
       </button>
       <button class="btn-pill btn-share" onclick="openShareModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-        Share
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>        
       </button>
       <button class="btn-pill btn-cfg" onclick="openSidebar()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        Configure
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>    
       </button>
     </div>
   </div>
 
   <!-- KPIs -->
   <div class="card" id="sec-kpi">
-    <div class="card-hdr collapsed" onclick="cardToggle('kpi')">
-      <div class="card-hdr-title">
+    
+<div class="card-hdr expanded" onclick="cardToggle('kpi')">
+    <div class="card-hdr-title">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-        Summary
+        SUMMARY<span id="loanDescHeader" style="color:var(--accent); text-transform:none;"></span>
       </div>
+
       <div class="card-hdr-right">
         <span class="card-hdr-meta" id="kpiMeta"></span>
-        <svg class="card-chev" id="kpi-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <div style="width:1px;height:18px;background:var(--border);flex-shrink:0"></div>
+        <svg class="card-chev open" id="kpi-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
     </div>
-    <div class="card-body" id="kpi-body" style="max-height:0">
+
+
+
+    <div class="card-body open" id="kpi-body" style="max-height:4000px">
       <div class="card-inner" style="padding-bottom:14px">
         <div class="kpi-grid" id="kpiGrid"></div>
-        <div class="bench-kpi-wrap" id="benchKpiWrap" style="margin-top:14px"></div>
       </div>
     </div>
+    
   </div>
 
   <!-- VERDICT + CHARTS -->
   <div class="card" id="sec-verdict">
-    <div class="card-hdr collapsed" onclick="cardToggle('verdict')">
+
+  <div class="card-hdr expanded" onclick="cardToggle('verdict')">
       <div class="card-hdr-title">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         Analysis &amp; Charts
       </div>
-      <svg class="card-chev" id="verdict-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="card-hdr-right" style="flex:1;justify-content:flex-end">
+        <div class="bench-pill-row" id="benchPillRow" onclick="event.stopPropagation()"></div>
+        <div style="width:1px;height:18px;background:var(--border);flex-shrink:0"></div>
+        <svg class="card-chev open" id="verdict-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
     </div>
-    <div class="card-body" id="verdict-body" style="max-height:0">
-      <div class="verdict-wrap" id="verdictWrap"></div>
+
+    <div class="card-body open" id="verdict-body" style="max-height:4000px">
       <div class="charts-row">
         <div>
-          <div class="chart-label">Interest Cost vs. Investment Gain</div>
+          <div class="chart-label" style="text-align:center">Interest Cost vs. Investment Gain</div>
           <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
         </div>
         <div>
-          <div class="chart-label">Investment Growth Over Time — All Selected Benchmarks</div>
+          <div class="chart-label" style="text-align:center">Investment Growth Over Time — All Selected Benchmarks</div>
           <div class="chart-wrap"><canvas id="growthChart"></canvas></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- BENCHMARKS -->
-  <div class="card" id="sec-bench">
-    <div class="card-hdr collapsed" onclick="cardToggle('bench')">
-      <div class="card-hdr-title">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        Investment Benchmarks
-      </div>
-      <div class="card-hdr-right">
-        <span class="card-hdr-meta" id="benchMeta"></span>
-        <svg class="card-chev" id="bench-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-    </div>
-    <div class="card-body" id="bench-body" style="max-height:0">
-      <div class="card-inner">
-        <div style="font-size:.75rem;color:var(--text2);margin-bottom:12px" id="benchSubTxt">Click to select/deselect. My Own is always active. Edit ✏ to customize name &amp; return.</div>
-        <div class="bench-grid" id="benchGrid"></div>
-      </div>
-    </div>
-  </div>
-
   <!-- SCHEDULE -->
   <div class="card" id="sec-sched">
-    <div class="card-hdr collapsed" onclick="cardToggle('sched')">
+
+<div class="card-hdr collapsed" onclick="cardToggle('sched')">
       <div class="card-hdr-title">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         Year-by-Year Schedule
       </div>
-      <div class="card-hdr-right">
-        <span class="card-hdr-meta" id="schedMeta"></span>
+      <div class="card-hdr-right" style="flex:1; justify-content:flex-end;">
+        <span class="card-hdr-meta" id="schedMeta" style="display:none"></span>
         <div class="sched-loan-info" id="schedLoanInfo"></div>
-        <div class="sched-toolbar" onclick="event.stopPropagation()">
-          <button class="sched-pill" id="ageToggleBtn" onclick="toggleAgeCol()" title="Toggle Age column">
+        <div class="sched-toolbar">
+          <button class="sched-pill" id="ageToggleBtn" onclick="event.stopPropagation();toggleAgeCol()" title="Toggle Age column">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             Age
           </button>
-          <button class="sched-pill" id="pastToggleBtn" onclick="togglePastRows()" title="Show/hide past years">
+          <button class="sched-pill" id="pastToggleBtn" onclick="event.stopPropagation();togglePastRows()" title="Show/hide past years">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>
             Past
           </button>
-          <button class="sched-pill csv-pill" onclick="exportCSV()" title="Export to CSV">
+          <button class="sched-pill csv-pill" onclick="event.stopPropagation();exportCSV()" title="Export to CSV">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             CSV
           </button>
         </div>
+        <div style="width:1px;height:18px;background:var(--border);flex-shrink:0"></div>
         <svg class="card-chev" id="sched-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
     </div>
+
     <div class="card-body" id="sched-body" style="max-height:0">
       <div class="tbl-wrap" style="padding:0">
         <table class="sched">
@@ -740,22 +763,149 @@ table.sched tbody tr:hover td{background:var(--surface2)}
   </div>
 
   <!-- FOOTER -->
+<style>
+    .site-footer { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 4px 20px 24px; font-family: 'DM Sans', sans-serif; background: transparent; }
+    .ft-disclaimer { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--loss); text-align: center; opacity: 0.85; }
+    .ft-bottom { display: flex; align-items: center; justify-content: center; gap: 12px; font-size: .76rem; color: var(--text2); flex-wrap: wrap; }
+    .ft-socials { display: flex; align-items: center; gap: 10px; }
+    .ft-socials a { color: var(--text2); transition: all .2s; display: inline-flex; padding: 2px; }
+    .ft-socials a:hover { transform: translateY(-2px); }
+    .ft-socials a.gh:hover { color: #333; }
+    [data-theme="dark"] .ft-socials a.gh:hover { color: #fff; }
+    .ft-socials a.yt:hover { color: #ff0000; }
+    .ft-socials a.in:hover { color: #0a66c2; }
+    .ft-socials a.ig:hover { color: #e1306c; }
+    .ft-socials svg { width: 16px; height: 16px; stroke-width: 2; }
+  </style>
   <footer class="site-footer">
-    <span>© 2026 Sam Vishwas</span>
-    <span class="sep">·</span>
-    <a class="yt-ft" href="https://www.youtube.com/@SamVishwas" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13" style="vertical-align:middle;margin-right:3px"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>Follow on YouTube</a>
-    <span class="sep">·</span>
-    <span>For educational purposes only — not financial advice.</span>
+    <div class="ft-disclaimer">FOR EDUCATIONAL PURPOSES ONLY — NOT FINANCIAL ADVICE.</div>
+    <div class="ft-bottom">
+      <span>© 2026 Sam Vishwas</span>
+      <span style="opacity:.4">·</span>
+      <div class="ft-socials">
+        <a href="https://github.com/samvishwas/FinTech" target="_blank" rel="noopener" class="gh" title="GitHub">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+        </a>
+        <a href="https://www.youtube.com/@SamVishwas" target="_blank" rel="noopener" class="yt" title="YouTube">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
+        </a>
+        <a href="https://www.linkedin.com/in/samvishwas/" target="_blank" rel="noopener" class="in" title="LinkedIn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+        </a>
+        <a href="https://www.instagram.com/samvishwas.insta" target="_blank" rel="noopener" class="ig" title="Instagram">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+        </a>
+      </div>
+    </div>
   </footer>
 
-</div><!-- /page -->
+</div>
+<!-- /page -->
 
+<!-- BENCHMARK EDIT POPOVER -->
+<div id="ownEditPopover" style="display:none;position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:0 8px 32px rgba(0,0,0,.22);z-index:500;width:272px">
+  <div id="popTitle" style="font-size:.75rem;font-weight:700;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Edit Benchmark</div>
+
+  <!-- Education note (non-Own only) -->
+  <div id="popEduNote" style="font-size:.68rem;color:var(--text2);background:var(--surface2);border-radius:6px;padding:6px 8px;margin-bottom:10px;line-height:1.5">
+    💡 Enter any valid stock, ETF, mutual fund or crypto symbol (e.g. MSFT, VOO, VFIAX, BTC).
+  </div>
+
+  <!-- My Own: label field only -->
+  <div id="popOwnNameSection" style="display:none;margin-bottom:8px">
+    <div style="font-size:.7rem;color:var(--text2);margin-bottom:3px">Label</div>
+    <input id="ownEditName" type="text" class="ti full" style="font-size:.78rem" placeholder="My Own">
+  </div>
+
+  <!-- Ticker (non-Own: single field, IS the label) -->
+  <div id="popTickerSection" style="margin-bottom:8px">
+    <div style="font-size:.7rem;color:var(--text2);margin-bottom:3px">Ticker Symbol</div>
+    <div style="display:flex;gap:5px">
+      <input id="popTicker" type="text" class="ti" style="flex:1;width:auto;text-align:left;text-transform:uppercase" placeholder="e.g. QQQ" oninput="this.value=this.value.toUpperCase()">
+      <button id="popFetchBtn" onclick="popFetch()" style="background:var(--adv);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">
+        <span id="popFetchTxt">↓ Fetch</span>
+      </button>
+    </div>
+    <div id="popFetchMsg" style="font-size:.67rem;margin-top:3px;color:var(--text2)"></div>
+  </div>
+
+  <!-- Period selector (shown after fetch) -->
+  <div id="popPeriodRow" style="display:none;margin-bottom:8px">
+    <div style="font-size:.7rem;color:var(--text2);margin-bottom:3px">Historical Period</div>
+    <select id="popPeriod" class="ti" style="width:100%;text-align:left;cursor:pointer" onchange="popSelectPeriod()">
+      <option value="">— select period —</option>
+    </select>
+    <div id="popPeriodNote" style="font-size:.67rem;color:var(--text2);margin-top:3px"></div>
+  </div>
+
+  <!-- Return field + override -->
+  <div style="margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+      <div style="font-size:.7rem;color:var(--text2)">Return (%)</div>
+      <label id="overrideLabel" style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.67rem;color:var(--text2)">
+        Override
+        <span style="position:relative;display:inline-block;width:28px;height:16px">
+          <input type="checkbox" id="overrideToggle" style="opacity:0;width:0;height:0;position:absolute" onchange="popToggleOverride()">
+          <span id="overrideTrack" style="position:absolute;inset:0;background:var(--border);border-radius:10px;cursor:pointer;transition:background .2s"></span>
+          <span id="overrideThumb" style="position:absolute;width:11px;height:11px;border-radius:50%;background:#fff;top:2.5px;left:2.5px;transition:transform .2s"></span>
+        </span>
+      </label>
+    </div>
+    <input id="ownEditRet" type="number" class="ti" style="width:100%;text-align:left" step="0.1" placeholder="e.g. 10.5" readonly>
+    <input id="popRetSlider" type="range" min="0" max="100" step="0.1" style="width:100%;margin-top:4px;display:none" oninput="$('ownEditRet').value=this.value">
+  </div>
+
+  <div style="display:flex;gap:6px">
+    <button onclick="saveOwnEdit()" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 0;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">✓ Save</button>
+    <button onclick="closeOwnEdit()" style="flex:1;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:6px;padding:6px 0;font-size:.75rem;cursor:pointer;font-family:'DM Sans',sans-serif">Cancel</button>
+  </div>
+</div>
+
+<div id="infoTip"></div>
 <script>
 const $=id=>document.getElementById(id);
 const fmt=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
 const fmtp=n=>(n>=0?'+':'')+n.toFixed(2)+'%';
 let chartMain,chartGrowth,chartIG,chartID,isDark=false;
 let showAgeCol=false,showPastRows=false;
+
+/* ── INFO TOOLTIP ENGINE ── */
+(function(){
+  const tip=$('infoTip');
+  if(!tip)return;
+  let active=null;
+  function place(e){
+    const W=window.innerWidth,TW=tip.offsetWidth||210,TH=tip.offsetHeight||70;
+    let x=e.clientX+14, y=e.clientY-TH-8;
+    if(x+TW>W-6) x=e.clientX-TW-14;
+    if(y<6) y=e.clientY+20;
+    tip.style.left=x+'px'; tip.style.top=y+'px';
+  }
+  document.addEventListener('mouseover',function(e){
+    const icon=e.target.closest('.info-icon');
+    if(icon&&icon.dataset.tip){
+      tip.textContent=icon.dataset.tip;
+      tip.classList.add('visible');
+      active=icon;
+      place(e);
+    } else if(active&&!e.target.closest('.info-icon')){
+      tip.classList.remove('visible');
+      active=null;
+    }
+  });
+  document.addEventListener('mouseout',function(e){
+    if(active&&e.target===active){
+      tip.classList.remove('visible');
+      active=null;
+    }
+  });
+  document.addEventListener('mousemove',function(e){
+    if(active) place(e);
+  });
+  document.addEventListener('scroll',function(){
+    tip.classList.remove('visible'); active=null;
+  },{capture:true,passive:true});
+})();
 
 /* ── SCHEDULE TOGGLES ── */
 function toggleAgeCol(){
@@ -772,25 +922,32 @@ function togglePastRows(){
 /* ── CSV EXPORT ── */
 function exportCSV(){
   const rows=[];
-  // header from thead
   const ths=[...$('schedHead').querySelectorAll('th')];
   rows.push(ths.map(th=>'"'+th.textContent.trim()+'"').join(','));
-  // body rows
   const trs=[...$('schedBody').querySelectorAll('tr')];
   trs.forEach(tr=>{
     const tds=[...tr.querySelectorAll('td')];
     rows.push(tds.map(td=>'"'+td.textContent.trim().replace(/"/g,'""')+'"').join(','));
   });
   const csv=rows.join('\n');
+  // Item 4: versioned sortable timestamp filename
+  const ver=document.querySelector('meta[name=version]')?.content||'1.18';
+  const now=new Date();
+  const ts=now.getFullYear()+'-'
+    +String(now.getMonth()+1).padStart(2,'0')+'-'
+    +String(now.getDate()).padStart(2,'0')+'-'
+    +String(now.getHours()).padStart(2,'0')
+    +String(now.getMinutes()).padStart(2,'0')
+    +String(now.getSeconds()).padStart(2,'0');
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-  a.download='dhurandhars-dilemma-schedule.csv';
+  a.download=`payoff-vs-invest-(${ver})-${ts}.csv`;
   a.click();
 }
 
 /* ── BENCHMARKS STATE ── */
 const BENCH_DEFS=[
-  {id:'own', label:'My Own',   name:'My Own',       ret:10,   period:'Expected Return', src:'',           url:'',                                            color:'var(--c-own)', alwaysOn:true,  selected:true},
+  {id:'own', label:'My Own',   name:'',             ret:4.45, period:'Expected Return', src:'',           url:'',                                            color:'var(--c-own)', alwaysOn:true,  selected:true},
   {id:'spy', label:'SPY',      name:'S&P 500 ETF',  ret:10.5, period:'15-yr annualized',src:'Yahoo Finance',url:'https://finance.yahoo.com/quote/SPY/performance/', color:'var(--c-spy)', alwaysOn:false, selected:false},
   {id:'qqq', label:'QQQ',      name:'Nasdaq-100',   ret:17.2, period:'15-yr annualized',src:'Yahoo Finance',url:'https://finance.yahoo.com/quote/QQQ/performance/', color:'var(--c-qqq)', alwaysOn:false, selected:false},
   {id:'tsla',label:'TSLA',     name:'Tesla, Inc.',  ret:38.0, period:'15-yr annualized',src:'Yahoo Finance',url:'https://finance.yahoo.com/quote/TSLA/performance/',color:'var(--c-tsla)',alwaysOn:false, selected:false},
@@ -828,9 +985,19 @@ function syncFromRange(rangeEl,targetId){
   update();
 }
 
+/* ── APR CHANGED — keep ROI in sync ── */
+function aprChanged(){
+  const apr=parseFloat($('aprT').value)||4.45;
+  if($('aprR'))$('aprR').value=$('aprT').value;
+  // sync ROI = APR (user can override via roiT directly)
+  $('roiT').value=apr;
+  if($('roiR'))$('roiR').value=apr;
+  roiChanged();
+}
+
 /* ── ROI CHANGED — sync My Own benchmark ── */
 function roiChanged(){
-  const v=parseFloat($('roiT').value)||10;
+  const v=parseFloat($('roiT').value)||4.45;
   const own=benches.find(b=>b.id==='own');
   if(own)own.ret=v;
   renderBenchCards();
@@ -862,53 +1029,286 @@ function toggleBench(id){
   update();
 }
 
-/* ── BENCHMARK EDIT ── */
+/* ── BENCHMARK EDIT (popover for all non-Own) ── */
+let _editingBenchId=null;
 function editBench(id,e){
   e.stopPropagation();
-  const card=$('bc-'+id);
-  card.classList.toggle('bench-edit-mode');
+  _openPopover(e.target.closest('.bench-pill-edit'),id);
 }
 function saveBench(id){
   const b=benches.find(x=>x.id===id);
   const nameEl=$('be-name-'+id),retEl=$('be-ret-'+id);
   if(nameEl)b.name=nameEl.value||b.label;
   if(retEl){const v=parseFloat(retEl.value);if(!isNaN(v))b.ret=v;}
-  $('bc-'+id).classList.remove('bench-edit-mode');
   renderBenchCards();
   update();
 }
 
-/* ── RENDER BENCHMARK CARDS ── */
+/* ── RENDER BENCHMARK PILLS ── */
 function renderBenchCards(){
-  const grid=$('benchGrid');
-  const selectedCount=benches.filter(b=>b.selected).length;
-  $('benchMeta').textContent=selectedCount+' selected';
+  const row=$('benchPillRow');
+  if(!row)return;
+  const roiVal=parseFloat($('roiT').value)||4.45;
 
-  grid.innerHTML=benches.map(b=>{
-    const selStyle=b.selected
-      ?`border-color:${b.color};background:${b.color}18`
-      :'';
-    const checkStyle=`background:${b.color}`;
-    const roiVal=b.id==='own'?(parseFloat($('roiT').value)||10):b.ret;
-
-    return `<div class="bench-item${b.selected?' selected':''}${b.alwaysOn?' always-on':''}"
-      id="bc-${b.id}" style="${selStyle}" onclick="toggleBench('${b.id}')">
-      <div class="b-check" style="${checkStyle}">✓</div>
-      ${!b.alwaysOn?`<button class="bench-edit-btn" onclick="editBench('${b.id}',event)" title="Edit">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      </button>`:''}
-      <div class="b-ticker" style="color:${b.color}">${b.label}</div>
-      <div class="b-name">${b.name}</div>
-      <div class="b-ret-val" style="color:${b.color}" id="bret-${b.id}">+${roiVal.toFixed(1)}%</div>
-      <div class="b-period">${b.id==='own'?'Synced with slider':b.period}</div>
-      ${b.url?`<a class="b-src" href="${b.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${b.src} ↗</a>`:''}
-      <div class="bench-edit-fields">
-        <input id="be-name-${b.id}" value="${b.name}" placeholder="Name" onclick="event.stopPropagation()">
-        <input id="be-ret-${b.id}" type="number" value="${b.ret}" step="0.1" placeholder="Return %" onclick="event.stopPropagation()">
-        <button class="bench-edit-done" onclick="event.stopPropagation();saveBench('${b.id}')">✓ Save</button>
-      </div>
-    </div>`;
+  row.innerHTML=benches.map(b=>{
+    const val=b.id==='own'?roiVal:b.ret;
+    const col=resolveColor(b.color);
+    const activeStyle=b.selected?`background:${col};border-color:${col}`:'';
+    const editBtn=`<button class="bench-pill-edit" onclick="event.stopPropagation();${b.id==='own'?'openOwnEdit(this)':'editBench(\''+b.id+'\',event)'}" title="Edit">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </button>`;
+    return `<span class="bench-pill${b.selected?' active':''}${b.alwaysOn?' always-on':''}"
+      id="bc-${b.id}" style="${activeStyle}" onclick="toggleBench('${b.id}')"
+      title="${b.name||b.label} · ${val.toFixed(1)}% return${b.url?' · '+b.src:''}">
+      ${b.label} ${val.toFixed(1)}%${editBtn}
+    </span>`;
   }).join('');
+  // also keep bench edit fields rendered (hidden) for non-own
+  const editArea=$('benchEditArea');
+  if(editArea){
+    editArea.innerHTML=benches.filter(b=>!b.alwaysOn).map(b=>`
+      <div id="bef-${b.id}" class="bench-edit-fields" style="display:none">
+        <input id="be-name-${b.id}" value="${b.name}" placeholder="Name">
+        <input id="be-ret-${b.id}" type="number" value="${b.ret}" step="0.1" placeholder="Return %">
+        <button onclick="saveBench('${b.id}')">✓ Save</button>
+      </div>`).join('');
+  }
+}
+
+/* ── API KEY (session memory only) ── */
+window._fmpKey='';
+
+/* ── CAGR CALCULATOR ── */
+function calcCAGR(vFinal,vInitial,days){
+  if(!vInitial||vInitial<=0||days<=0)return null;
+  const t=days/365.25;
+  return(Math.pow(vFinal/vInitial,1/t)-1)*100;
+}
+
+/* ── PERIOD DEFINITIONS ── */
+const PERIODS=[
+  {key:'ytd',   label:'YTD',        days:()=>Math.round((new Date()-new Date(new Date().getFullYear(),0,1))/864e5)},
+  {key:'1y',    label:'1 Year',     days:()=>365},
+  {key:'3y',    label:'3 Years',    days:()=>365*3},
+  {key:'5y',    label:'5 Years',    days:()=>365*5},
+  {key:'10y',   label:'10 Years',   days:()=>365*10},
+  {key:'15y',   label:'15 Years',   days:()=>365*15},
+  {key:'20y',   label:'20 Years',   days:()=>365*20},
+  {key:'30y',   label:'30 Years',   days:()=>365*30},
+  {key:'life',  label:'Since Inception (All available)',days:()=>Infinity},
+];
+
+let _popPrices=[]; // [{ts,price}] sorted oldest first
+
+/* ── FETCH PRICE HISTORY ── */
+async function popFetch(){
+  const ticker=($('popTicker').value||'').trim().toUpperCase();
+  if(!ticker){$('popFetchMsg').textContent='Please enter a ticker symbol.';return;}
+  const btn=$('popFetchBtn'),msg=$('popFetchMsg');
+  btn.disabled=true;
+  $('popFetchTxt').textContent='…';
+  msg.style.color='var(--text2)';
+  msg.textContent='Fetching…';
+  _popPrices=[];
+
+  // Detect crypto vs stock
+  const cryptoMap={'BTC':'bitcoin','ETH':'ethereum','SOL':'solana','BNB':'binancecoin','ADA':'cardano','XRP':'ripple','DOGE':'dogecoin','AVAX':'avalanche-2','DOT':'polkadot','MATIC':'matic-network'};
+  const coinId=cryptoMap[ticker]||null;
+
+  try{
+    if(coinId){
+      // CoinGecko — no key needed
+      const res=await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=max&interval=monthly`);
+      if(!res.ok)throw new Error(res.status===429?'Rate limited — wait 60s and retry':`CoinGecko error ${res.status}`);
+      const d=await res.json();
+      _popPrices=(d.prices||[]).map(([ts,p])=>({ts,price:p})).sort((a,b)=>a.ts-b.ts);
+    } else {
+      // FMP
+      const key=window._fmpKey||'demo';
+      const res=await fetch(`https://financialmodelingprep.com/api/v3/historical-price-full/${ticker}?apikey=${key}`);
+      if(!res.ok){
+        if(res.status===401)throw new Error('FMP API key invalid or missing — paste your key in Configure → API Keys');
+        throw new Error(`FMP error ${res.status}`);
+      }
+      const d=await res.json();
+      if(!d.historical||!d.historical.length){
+        const isDemo=(key==='demo')||!key;
+        throw new Error(isDemo
+          ?'No data — paste your FMP API key in Configure → API Keys (free at financialmodelingprep.com)'
+          :'Ticker not found or FMP daily limit reached (250 req/day on free tier)');
+      }
+      _popPrices=d.historical.map(r=>({ts:new Date(r.date).getTime(),price:r.adjClose||r.close})).sort((a,b)=>a.ts-b.ts);
+    }
+
+    if(!_popPrices.length)throw new Error('No price data returned');
+
+    // Build period options
+    const latest=_popPrices[_popPrices.length-1];
+    const oldest=_popPrices[0];
+    const totalDays=(latest.ts-oldest.ts)/864e5;
+    const sel=$('popPeriod');
+    sel.innerHTML='<option value="">— select period —</option>';
+    PERIODS.forEach(p=>{
+      const d=p.days();
+      if(d===Infinity||totalDays>=d*0.85){// allow 15% tolerance
+        const cagr=popCAGRForDays(d===Infinity?totalDays:d);
+        if(cagr!==null){
+          const opt=document.createElement('option');
+          opt.value=d===Infinity?totalDays:d;
+          opt.dataset.days=d===Infinity?totalDays:d;
+          opt.textContent=`${p.label}  →  ${cagr.toFixed(2)}% p.a.`;
+          sel.appendChild(opt);
+        }
+      }
+    });
+
+    $('popPeriodRow').style.display='block';
+    const dataFrom=new Date(oldest.ts).toLocaleDateString('en-US',{month:'short',year:'numeric'});
+    const dataTo=new Date(latest.ts).toLocaleDateString('en-US',{month:'short',year:'numeric'});
+    msg.style.color='var(--gain)';
+    msg.textContent=`✓ ${_popPrices.length} data points · ${dataFrom} → ${dataTo}`;
+  }catch(err){
+    msg.style.color='var(--loss)';
+    msg.textContent='✗ '+err.message;
+    $('popFetchTxt').textContent='↓ Fetch';
+    btn.disabled=false;
+    throw err; // re-throw so callers (.then/.catch in saveOwnEdit) know it failed
+  }
+  $('popFetchTxt').textContent='↓ Fetch';
+  btn.disabled=false;
+}
+
+function popCAGRForDays(days){
+  if(!_popPrices.length)return null;
+  const latest=_popPrices[_popPrices.length-1];
+  const targetTs=latest.ts-days*864e5;
+  // find closest price at or before target
+  let initial=_popPrices[0];
+  for(const p of _popPrices){if(p.ts<=targetTs)initial=p;}
+  const actualDays=(latest.ts-initial.ts)/864e5;
+  return calcCAGR(latest.price,initial.price,actualDays);
+}
+
+function popSelectPeriod(){
+  const sel=$('popPeriod');
+  const days=parseFloat(sel.value);
+  if(!days)return;
+  const cagr=popCAGRForDays(days);
+  if(cagr!==null){
+    $('ownEditRet').value=cagr.toFixed(2);
+    if($('popRetSlider'))$('popRetSlider').value=Math.min(100,Math.max(0,cagr.toFixed(2)));
+    const opt=sel.options[sel.selectedIndex];
+    $('popPeriodNote').textContent=opt?opt.textContent:'';
+  }
+}
+
+function popToggleOverride(){
+  const on=$('overrideToggle').checked;
+  $('ownEditRet').readOnly=!on;
+  $('ownEditRet').style.opacity=on?'1':'0.7';
+  $('popRetSlider').style.display=on?'block':'none';
+  $('overrideTrack').style.background=on?'var(--adv)':'var(--border)';
+  $('overrideThumb').style.transform=on?'translateX(12px)':'translateX(0)';
+}
+
+/* ── MY OWN EDIT POPOVER ── */
+function _openPopover(btn,id){
+  const b=benches.find(x=>x.id===id);
+  if(!b||!btn)return;
+  _editingBenchId=id;
+  const isOwn=(id==='own');
+  $('popTitle').textContent='Edit '+(b.label||id.toUpperCase());
+  $('ownEditName').value=b.label||'';
+  $('popTicker').value=b.ticker||'';
+  $('ownEditRet').value=isOwn?(parseFloat($('roiT').value)||4.45):b.ret;
+  $('ownEditRet').readOnly=!isOwn;
+  $('ownEditRet').style.opacity=isOwn?'1':'0.7';
+  $('overrideToggle').checked=false;
+  if($('overrideTrack'))$('overrideTrack').style.background='var(--border)';
+  if($('overrideThumb'))$('overrideThumb').style.transform='translateX(0)';
+  $('popRetSlider').style.display='none';
+  $('popRetSlider').value=b.ret;
+  $('popPeriodRow').style.display='none';
+  $('popPeriod').innerHTML='<option value="">— select period —</option>';
+  $('popFetchMsg').textContent='';
+  _popPrices=[];
+  // show/hide sections: My Own uses name field only, others use ticker+fetch
+  if($('popEduNote'))$('popEduNote').style.display=isOwn?'none':'block';
+  if($('popOwnNameSection'))$('popOwnNameSection').style.display=isOwn?'block':'none';
+  if($('popTickerSection'))$('popTickerSection').style.display=isOwn?'none':'block';
+  if($('popPeriodRow'))$('popPeriodRow').style.display='none';
+  if($('overrideLabel'))$('overrideLabel').style.display=isOwn?'none':'flex';
+  // position popover
+  const pop=$('ownEditPopover');
+  const rect=btn.getBoundingClientRect();
+  pop.style.display='block';
+  pop.style.top=(rect.bottom+6)+'px';
+  pop.style.left=Math.min(rect.left,window.innerWidth-290)+'px';
+  setTimeout(()=>document.addEventListener('click',outsideOwnEdit),0);
+}
+
+function openOwnEdit(btn){_openPopover(btn,'own');}
+function outsideOwnEdit(e){
+  if(!$('ownEditPopover').contains(e.target)){closeOwnEdit();}
+}
+function closeOwnEdit(){
+  $('ownEditPopover').style.display='none';
+  document.removeEventListener('click',outsideOwnEdit);
+}
+function saveOwnEdit(){
+  const ret=parseFloat($('ownEditRet').value);
+  const id=_editingBenchId||'own';
+  const b=benches.find(x=>x.id===id);
+  if(!b){closeOwnEdit();return;}
+  const isOwn=(id==='own');
+  if(isOwn){
+    const name=$('ownEditName').value.trim();
+    if(name)b.label=name;
+    if(!isNaN(ret)){
+      b.ret=ret;
+      $('roiT').value=ret;
+      if($('roiR'))$('roiR').value=ret;
+    }
+    _editingBenchId=null;
+    closeOwnEdit();
+    renderBenchCards();
+    update();
+  } else {
+    // ticker IS the label
+    const ticker=($('popTicker').value||'').trim().toUpperCase();
+    if(ticker){b.label=ticker;b.ticker=ticker;}
+    const tickerChanged=(ticker&&ticker!==b._lastFetchedTicker);
+    const noFetchDone=!_popPrices.length;
+    if(ticker&&(tickerChanged||noFetchDone)){
+      // auto-fetch then save — show feedback on Save button
+      b._lastFetchedTicker=ticker;
+      const saveBtn=document.querySelector('#ownEditPopover button[onclick="saveOwnEdit()"]');
+      if(saveBtn){saveBtn.textContent='Fetching…';saveBtn.disabled=true;}
+      popFetch().then(()=>{
+        // auto-select Life period (last) or first available
+        const sel=$('popPeriod');
+        if(sel.options.length>1){
+          sel.selectedIndex=sel.options.length-1;
+          popSelectPeriod();
+        }
+        const fetchedRet=parseFloat($('ownEditRet').value);
+        if(!isNaN(fetchedRet))b.ret=fetchedRet;
+        _editingBenchId=null;
+        closeOwnEdit();
+        renderBenchCards();
+        update();
+      }).catch(()=>{
+        // fetch failed — restore Save button, keep popover open so user sees error
+        if(saveBtn){saveBtn.textContent='✓ Save';saveBtn.disabled=false;}
+      });
+    } else {
+      if(!isNaN(ret))b.ret=ret;
+      _editingBenchId=null;
+      closeOwnEdit();
+      renderBenchCards();
+      update();
+    }
+  }
 }
 
 /* ── AMORTIZATION ── */
@@ -939,11 +1339,11 @@ function gc(){
 // resolve CSS variable color to actual hex for Chart.js
 function resolveColor(cssVar){
   const map={
-    'var(--c-own)': isDark?'#f59e0b':'#b45309',
-    'var(--c-spy)': isDark?'#56B4E9':'#0072B2',
-    'var(--c-qqq)': isDark?'#4ade80':'#009E73',
-    'var(--c-tsla)':isDark?'#E69F00':'#D55E00',
-    'var(--c-btc)': isDark?'#f0abca':'#CC79A7',
+    'var(--c-own)': isDark?'#a78bfa':'#7c3aed',
+    'var(--c-spy)': isDark?'#3b82f6':'#1E3A8A',
+    'var(--c-qqq)': isDark?'#22d3ee':'#00B5CB',
+    'var(--c-tsla)':isDark?'#f87171':'#E31937',
+    'var(--c-btc)': isDark?'#fbbf24':'#F7931A',
   };
   return map[cssVar]||cssVar;
 }
@@ -954,25 +1354,33 @@ function update(){
   const origStr=$('origDate').value||'2011-01';
   const apr    =parseFloat($('aprT').value)||4.45;
   const termYrs=parseInt($('yrT').value)||30;
-  const roi    =parseFloat($('roiT').value)||10;
-  const extra  =parseFloat($('extraPmt').value)||0;
+  const roi    =parseFloat($('roiT').value)||4.45;
   const inflOn =$('inflToggle').checked;
   const infl   =inflOn?(parseFloat($('inflT').value)||0):0;
-  const birthYr=parseInt($('birthYr').value)||0;
+  const birthYrRaw=$('birthYr').value;
+  const birthYr=birthYrRaw?parseInt(birthYrRaw)||0:0;
   const uName  =$('userName').value.trim();
   const lDesc  =$('loanName').value.trim();
+
+  // Item 12: auto-default Birth Year = origination year − 28 (live, only when user hasn't chosen)
+  const birthSel=$('birthYr');
+  if(birthSel&&birthSel.tagName==='SELECT'&&!birthSel.dataset.userSet){
+    const defaultByr=String(parseInt(origStr.slice(0,4)||'2011')-28);
+    if(birthSel.value!==defaultByr){
+      birthSel.value=defaultByr;
+    }
+  }
 
   // sync My Own
   const own=benches.find(b=>b.id==='own');
   if(own)own.ret=roi;
 
-  // elapsed months — snap to whole completed years so Y-b-Y starts at Jan of the current year
+  // elapsed months
   const origDate=new Date(origStr+'-01');
   const today=new Date();
   const totalMos=termYrs*12;
   const mElapsedRaw=Math.max(0,(today.getFullYear()-origDate.getFullYear())*12+(today.getMonth()-origDate.getMonth()));
   const eYrs=Math.floor(mElapsedRaw/12),eMos=mElapsedRaw%12;
-  // snap balance to end of last completed year (Jan 1 of current year)
   const mElapsed=eYrs*12;
   const mRemaining=Math.max(0,totalMos-mElapsed);
   const rYrs=Math.floor(mRemaining/12),rMos=mRemaining%12;
@@ -980,10 +1388,14 @@ function update(){
   // current balance
   let curBal;
   const cbOvr=parseFloat($('curBal').value);
+  const computed=Math.max(0,calcBalAt(origP,apr/100,totalMos,mElapsed));
   if(!isNaN(cbOvr)&&cbOvr>0){
     curBal=cbOvr;
   } else {
-    curBal=Math.max(0,calcBalAt(origP,apr/100,totalMos,mElapsed));
+    curBal=computed;
+    // Item 9: pre-fill the input live with computed balance
+    const cbEl=$('curBal');
+    if(cbEl&&!cbEl.dataset.userSet)cbEl.placeholder=fmt(computed).replace('$','').replace(/,/g,'');
   }
 
   let lump=parseFloat($('lumpSum').value);
@@ -991,29 +1403,83 @@ function update(){
 
   const r=apr/100/12;
   const stdPmt=calcPmt(origP,apr/100,totalMos);
-  const totalPmt=stdPmt+extra;
+  const totalPmt=stdPmt;
   const yearsLeft=Math.ceil(mRemaining/12);
   const startYear=origDate.getFullYear()+eYrs;
-  const deployYrRaw=parseInt($('deployYr').value);
-  const deployOffset=(!isNaN(deployYrRaw)&&deployYrRaw>startYear)?(deployYrRaw-startYear):0;
+
+  // Deploy Month → offset in whole years (for year-by-year schedule)
+  // depFracYear = fraction of the deploy-year that remains after (and including) deploy month
+  // e.g. deploy Jan → 12/12 = 1.0 (full year's growth), deploy Jul → 6/12 = 0.5
+  const deployMonVal=($('deployMon')&&$('deployMon').value)?$('deployMon').value:'';
+  let deployOffset=0;
+  let depFracYear=1; // default: full year
+  if(deployMonVal){
+    const depDate=new Date(deployMonVal+'-01');
+    const depYr=depDate.getFullYear();
+    const depMon=depDate.getMonth(); // 0-based: Jan=0, Dec=11
+    // whole years between startYear (y=1 row) and the deploy year
+    deployOffset=Math.max(0,depYr-startYear);
+    // months remaining in deploy year from deploy month onward (inclusive)
+    depFracYear=(12-depMon)/12;
+  }
 
   // inflation Fisher
   const realROI=((1+roi/100)/(1+infl/100)-1)*100;
   const realAPR=((1+apr/100)/(1+infl/100)-1)*100;
 
-  // header
-  $('userLabel').textContent=uName?`${uName}'s Analysis`:'';
-  $('loanDesc').textContent=lDesc;
+  // header — item 1: live name in H1, item 3: no "Analysis" text
+  const brandEl=$('brandName');
+  if(brandEl)brandEl.textContent=uName?`${uName}'s`:"Dhurandhar's";
+  const headerElem = $('loanDescHeader');
+  if (headerElem) {
+    // Adds colon and exactly one space before the loan name if it exists
+    headerElem.textContent = lDesc ? ': ' + lDesc : '';
+  }
+  // ── KPI helper values ──
+  const MOS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  // Start month label (origination)
+  const startMonLbl=MOS[origDate.getMonth()]+' '+origDate.getFullYear();
+  // End month label (origination + termYrs years)
+  const endDateObj=new Date(origDate.getFullYear(),origDate.getMonth()+totalMos,1);
+  const endMonLbl=MOS[endDateObj.getMonth()]+' '+endDateObj.getFullYear();
+  // Current month label (today)
+  const todayLbl=MOS[today.getMonth()]+' '+today.getFullYear();
+  // Monthly P & I split at current balance
+  const curIntPmt=curBal*r;                          // interest portion this month
+  const curPrinPmt=Math.max(0,stdPmt-curIntPmt);     // principal portion
+  // Interest already paid (total scheduled interest − remaining interest)
+  // Remaining interest computed after schedule runs; compute approximation here from amortization
+  const totalSchedInt=stdPmt*totalMos-origP;         // total interest over full term
+  const remSchedInt=stdPmt*mRemaining-curBal;        // interest left from here
+  const intPaid=Math.max(0,totalSchedInt-remSchedInt);
 
-  // top KPI grid
+  // top KPI grid — 5 tiles
   $('kpiMeta').textContent=`${fmt(curBal)} remaining · ${rYrs}y ${rMos}m left`;
   $('kpiGrid').innerHTML=`
-    <div class="kpi"><div class="kl">Monthly Payment</div><div class="kv">${fmt(stdPmt)}${extra>0?`<div class="ks">+${fmt(extra)} extra</div>`:''}</div></div>
-    <div class="kpi"><div class="kl">Current Balance</div><div class="kv">${fmt(curBal)}</div><div class="ks">of ${fmt(origP)}</div></div>
-    <div class="kpi"><div class="kl">Elapsed</div><div class="kv">${eYrs}y ${eMos}m</div><div class="ks">since ${origStr}</div></div>
-    <div class="kpi"><div class="kl">Remaining</div><div class="kv">${rYrs}y ${rMos}m</div><div class="ks">${yearsLeft} years</div></div>
-    <div class="kpi neg"><div class="kl">Total Interest Left</div><div class="kv" id="kpiInt">—</div></div>
-    <div class="kpi pos"><div class="kl">Lump Sum Invested</div><div class="kv">${fmt(lump)}</div></div>`;
+    <div class="kpi">
+      <div class="kl">Current Balance</div>
+      <div class="kv">${fmt(curBal)}</div>
+      <div class="ks">of ${fmt(origP)}</div>
+    </div>
+    <div class="kpi">
+      <div class="kl">Monthly Payment</div>
+      <div class="kv">${fmt(stdPmt)}</div>
+      <div class="ks">P: ${fmt(curPrinPmt)} · I: ${fmt(curIntPmt)}</div>
+    </div>
+    <div class="kpi">
+      <div class="kl">Time</div>
+      <div class="kv" style="font-size:.78rem">${eYrs}y ${eMos}m elapsed · ${rYrs}y ${rMos}m left</div>
+      <div class="ks">${startMonLbl} → ${todayLbl} → ${endMonLbl}</div>
+    </div>
+    <div class="kpi neg">
+      <div class="kl">Interest</div>
+      <div class="kv" id="kpiInt">—</div>
+      <div class="ks" id="kpiIntSub">Paid: ${fmt(intPaid)}</div>
+    </div>
+    <div class="kpi pos">
+      <div class="kl">Lump Sum To Be Invested</div>
+      <div class="kv">${fmt(lump)}</div>
+    </div>`;
 
   // run schedule for all selected benchmarks
   const selected=benches.filter(b=>b.selected);
@@ -1111,8 +1577,14 @@ function update(){
         row+=`<td style="color:var(--text2);opacity:.45">—</td>`;
         seriesData[b.id].inv.push(0);
       } else {
-        if(st.inv===0)st.inv=lump; // first year of deployment — seed the principal
-        st.inv*=(1+b.ret/100);
+        if(st.inv===0){
+          // first year of deployment: seed principal, grow only for the
+          // fractional portion of the year remaining after the deploy month
+          // (depFracYear = 1.0 for Jan, 0.5 for Jul, ~0.08 for Dec)
+          st.inv=lump*Math.pow(1+b.ret/100,depFracYear);
+        } else {
+          st.inv*=(1+b.ret/100); // full year for all subsequent years
+        }
         if(i===0){nomArr[y-1]=Math.round(st.inv);realArr[y-1]=Math.round(st.inv/cumInfl);}
         row+=`<td style="color:${b.color}">${fmt(st.inv)}</td>`;
         seriesData[b.id].inv.push(Math.round(st.inv));
@@ -1158,37 +1630,9 @@ function update(){
   });
 
   const totInt=totIntShared;
-  $('kpiInt').textContent=fmt(totInt);
-
-  // bench KPI comparison table
-  let bKpiHtml=`<table class="bench-kpi-table"><thead><tr><th>Benchmark</th><th>End Value</th><th>Net Gain</th><th>Interest Cost</th><th>Advantage</th><th>Verdict</th></tr></thead><tbody>`;
-  selected.forEach(b=>{
-    const ng=seriesData[b.id].netGrowth;
-    const adv=ng-totInt;
-    const win=adv>=0;
-    bKpiHtml+=`<tr>
-      <td style="color:${b.color};font-family:'DM Serif Display',serif;font-style:italic">${b.label} — ${b.name}</td>
-      <td>${fmt(seriesData[b.id].endVal)}</td>
-      <td class="cg2">+${fmt(ng)}</td>
-      <td class="ci">${fmt(totInt)}</td>
-      <td class="${win?'cg2':'ci'}">${win?'+':''}${fmt(adv)}</td>
-      <td style="font-weight:600;color:${win?'var(--gain)':'var(--loss)'};">${win?'📈 Invest':'🏠 Pay Off'}</td>
-    </tr>`;
-  });
-  bKpiHtml+=`</tbody></table>`;
-  $('benchKpiWrap').innerHTML=bKpiHtml;
-
-  // verdicts
-  let vHtml='';
-  selected.forEach(b=>{
-    const diff=seriesData[b.id].netGrowth-totInt;
-    const win=diff>=0;
-    vHtml+=`<div class="verdict ${win?'invest':'payoff'}">
-      <strong>${win?'📈':'🏠'} ${b.label} (${b.name}) — ${win?'Invest':'Pay Off'}</strong>
-      ${win?`Investing outperforms by <b>${fmt(diff)}</b>`:`Paying off saves <b>${fmt(-diff)}</b> more`} over ${rYrs}y ${rMos}m at <b>${b.ret.toFixed(1)}%</b> return.
-    </div>`;
-  });
-  $('verdictWrap').innerHTML=vHtml;
+  const kpiIntEl=$('kpiInt'),kpiIntSubEl=$('kpiIntSub');
+  if(kpiIntEl)kpiIntEl.textContent='Left: '+fmt(totInt);
+  if(kpiIntSubEl)kpiIntSubEl.textContent='Paid: '+fmt(intPaid);
 
   // inflation panel
   if(inflOn){
@@ -1228,7 +1672,21 @@ function update(){
 /* ── CHARTS ── */
 function renderCharts(labels,seriesData,selected,totInt){
   const c=gc();
-  // bar chart: interest vs gains for all selected
+
+  // ── Shared Y-axis max (same scale on both charts) ──
+  const barMax=Math.max(totInt,...selected.map(b=>seriesData[b.id].netGrowth));
+  const lineVals=selected.flatMap(b=>seriesData[b.id].inv.filter(v=>v>0));
+  const lineMax=lineVals.length?Math.max(...lineVals):0;
+  const sharedMax=Math.max(barMax,lineMax,1);
+  const mag=Math.pow(10,Math.floor(Math.log10(sharedMax)));
+  const niceStep=mag*(sharedMax/mag<=2?0.5:sharedMax/mag<=5?1:2);
+  const yMax=Math.ceil(sharedMax/niceStep)*niceStep;
+  const yFmt=v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1e3).toFixed(0)+'K');
+  // afterFit ensures both Y-axes are same width → X-axes align
+  const afterFit=scale=>{scale.width=58;};
+  const yAxisOpts={min:0,max:yMax,afterFit,grid:{color:c.grid},ticks:{color:c.tick,font:{family:'DM Mono',size:9},callback:yFmt}};
+
+  // ── bar chart ──
   const barLabels=['Interest Cost',...selected.map(b=>b.label+' Gain')];
   const barData=[totInt,...selected.map(b=>seriesData[b.id].netGrowth)];
   const barBg=[c.lossF,...selected.map(b=>resolveColor(b.color)+'55')];
@@ -1240,25 +1698,45 @@ function renderCharts(labels,seriesData,selected,totInt){
     data:{labels:barLabels,datasets:[{data:barData,backgroundColor:barBg,borderColor:barBd,borderWidth:2,borderRadius:7,borderSkipped:false}]},
     options:{responsive:true,maintainAspectRatio:false,animation:{duration:280,easing:'easeOutQuart'},
       plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.parsed.y)}}},
-      scales:{x:{grid:{color:c.grid},ticks:{color:c.tick,font:{family:'DM Sans',size:10},maxRotation:30}},
-              y:{beginAtZero:true,grid:{color:c.grid},ticks:{color:c.tick,font:{family:'DM Mono',size:10},callback:v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1e3).toFixed(0)+'K')}}}}
+      scales:{x:{grid:{color:c.grid},ticks:{color:c.tick,font:{family:'DM Sans',size:10},maxRotation:30}},y:yAxisOpts}}
   });
 
-  // line chart: all selected benchmarks
+  // ── line chart ──
   if(chartGrowth)chartGrowth.destroy();
   const datasets=selected.map(b=>({
     label:`${b.label} (${b.ret.toFixed(1)}%)`,
+    endVal:seriesData[b.id].inv[seriesData[b.id].inv.length-1]||0,
     data:seriesData[b.id].inv,
     borderColor:resolveColor(b.color),
     backgroundColor:resolveColor(b.color)+'22',
-    borderWidth:2.5,fill:false,tension:.4,pointRadius:2
+    borderWidth:2.5,fill:false,tension:.4,pointRadius:2,pointHoverRadius:5
   }));
+
+  const topLeftLabels={
+    id:'topLeftLabels',
+    afterDraw(chart){
+      const {ctx,chartArea:{left,top}}=chart;
+      const lineH=15,padX=8,padY=6;
+      ctx.save();
+      ctx.font='bold 10.5px "DM Mono",monospace';
+      chart.data.datasets.forEach((ds,i)=>{
+        const v=ds.endVal||0;
+        const exact=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(v);
+        ctx.fillStyle=ds.borderColor;
+        ctx.fillText(`${ds.label}:  ${exact}`,left+padX,top+padY+(i*lineH)+11);
+      });
+      ctx.restore();
+    }
+  };
+
   chartGrowth=new Chart($('growthChart').getContext('2d'),{
-    type:'line',data:{labels,datasets},
+    type:'line',data:{labels,datasets},plugins:[topLeftLabels],
     options:{responsive:true,maintainAspectRatio:false,animation:{duration:280,easing:'easeOutQuart'},
-      plugins:{legend:{labels:{color:c.tick,font:{family:'DM Sans',size:10},boxWidth:10,padding:8}}},
-      scales:{x:{grid:{color:c.grid},ticks:{color:c.tick,font:{family:'DM Sans',size:9},maxTicksLimit:10}},
-              y:{beginAtZero:false,grid:{color:c.grid},ticks:{color:c.tick,font:{family:'DM Mono',size:9},callback:v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1e3).toFixed(0)+'K')}}}}
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>
+        ` ${ctx.dataset.label}: ${new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(ctx.parsed.y)}`
+      }}},
+      scales:{x:{grid:{color:c.grid},ticks:{color:c.tick,font:{family:'DM Sans',size:9},maxTicksLimit:10}},y:yAxisOpts}
+    }
   });
 }
 
@@ -1352,8 +1830,9 @@ function doShare(){
     if(n)params.un=n;if(l)params.ln=l;if(b)params.by=b;
   }
   // advanced
-  const cb=$('curBal').value,ls=$('lumpSum').value,ep=$('extraPmt').value;
-  if(cb)params.cb=cb;if(ls)params.ls=ls;if(parseFloat(ep)>0)params.ep=ep;
+  const cb=$('curBal').value,ls=$('lumpSum').value;
+  const dm=$('deployMon')&&$('deployMon').value;
+  if(cb)params.cb=cb;if(ls)params.ls=ls;if(dm)params.dm=dm;
   if($('inflToggle').checked){params.inf=1;params.ir=$('inflT').value;}
 
   const hash='#'+Object.entries(params).map(([k,v])=>`${k}=${encodeURIComponent(v)}`).join('&');
@@ -1383,7 +1862,7 @@ function loadFromHash(){
   if(params.by)$('birthYr').value=params.by;
   if(params.cb)$('curBal').value=params.cb;
   if(params.ls)$('lumpSum').value=params.ls;
-  if(params.ep)$('extraPmt').value=params.ep;
+  if(params.dm&&$('deployMon'))$('deployMon').value=params.dm;
   if(params.inf==='1'){$('inflToggle').checked=true;toggleInflation();}
   if(params.ir)$('inflT').value=params.ir;
 }
@@ -1420,6 +1899,24 @@ const _origUpdate=update;
 window.update=function(){_origUpdate();trackEngagement()};
 
 /* ── INIT ── */
+// Populate birth year dropdown
+(function(){
+  const sel=$('birthYr');
+  if(!sel||sel.tagName!=='SELECT')return;
+  const maxYr=new Date().getFullYear()-18;
+  for(let y=maxYr;y>=1930;y--){
+    const o=document.createElement('option');
+    o.value=y; o.textContent=y;
+    sel.appendChild(o);
+  }
+})();
+// Set Deploy Month to today by default
+(function(){
+  const dm=$('deployMon');
+  if(!dm||dm.value)return;
+  const t=new Date();
+  dm.value=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0');
+})();
 loadFromHash();
 renderBenchCards();
 _origUpdate();  // call original directly so init doesn't count as engagement

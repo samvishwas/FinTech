@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="version" content="1.38">
+<meta name="version" content="1.41">
 <meta name="author" content="Sam Vishwas">
-<title>Dhurandhar's Dilemma v1.34 — Pay Off vs. Invest</title>
+<title>Dhurandhar's Dilemma v1.41 — Pay Off vs. Invest</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -40,6 +40,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .sb-backdrop.open{opacity:1;pointer-events:all}
 .sidebar{position:fixed;top:0;right:0;height:100%;width:var(--sidebar-w);max-width:96vw;background:var(--surface);border-left:1px solid var(--border);box-shadow:-8px 0 40px rgba(0,0,0,.18);z-index:101;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
 .sidebar.open{transform:translateX(0)}
+@media(max-width:400px){.sidebar{max-width:100vw;border-left:none}}
 .sb-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface2)}
 .sb-head h2{font-family:'DM Serif Display',serif;font-style:italic;font-size:1.05rem;color:var(--accent)}
 .sb-close{background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;border-radius:6px;display:flex;transition:color .2s}
@@ -96,13 +97,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .lr label{font-size:.78rem;font-weight:500;color:var(--text2)}
 .ti{border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-family:var(--mono);font-size:.82rem;font-weight:500;color:var(--accent);background:var(--surface2);transition:border-color .2s,background .3s;outline:none;width:105px;text-align:right}
 .ti:focus{border-color:var(--accent);background:var(--accent-lt)}
+.ti:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ti.full{width:100%;text-align:left;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.8rem}
 .ti.infl-i{color:var(--infl)}
 .ti.infl-i:focus{border-color:var(--infl);background:var(--infl-lt)}
 .ti.adv-i{color:var(--adv)}
 input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:var(--border);border-radius:2px;outline:none;cursor:pointer}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--accent);border:2.5px solid var(--surface);box-shadow:0 0 0 1.5px var(--accent);cursor:grab;transition:transform .15s}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);border:2.5px solid var(--surface);box-shadow:0 0 0 1.5px var(--accent);cursor:grab;transition:transform .15s}
 input[type=range]:active::-webkit-slider-thumb{transform:scale(1.2)}
+input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
 input[type=range].infl-r::-webkit-slider-thumb{background:var(--infl);box-shadow:0 0 0 1.5px var(--infl)}
 .hint{font-size:.69rem;color:var(--text2);line-height:1.5;margin-top:3px}
 .sb-divider{border:none;border-top:1px solid var(--border);margin:10px 0}
@@ -138,7 +141,8 @@ input[type=range].infl-r::-webkit-slider-thumb{background:var(--infl);box-shadow
 .yt-link{display:inline-flex;align-items:center;gap:5px;font-size:.73rem;font-weight:600;color:#ff0000;text-decoration:none;padding:3px 9px;border-radius:12px;border:1.5px solid #ff000033;background:#ff00000d;transition:all .2s;white-space:nowrap}
 .yt-link:hover{background:#ff000022;border-color:#ff0000aa}
 .yt-link svg{width:12px;height:12px}
-.brand .loan-desc{font-size:.72rem;color:var(--text2);font-style:italic;margin-top:2px}
+.brand .loan-desc{font-size:.72rem;color:var(--text2);font-style:italic;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#brandName{display:inline-block;max-width:clamp(140px,35vw,420px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
 .topbar-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;padding-top:3px}
 .btn-pill{display:flex;align-items:center;gap:6px;padding:7px 13px;border-radius:40px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:.77rem;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
 .btn-pill:hover{border-color:var(--accent);color:var(--accent)}
@@ -209,6 +213,7 @@ input[type=range].infl-r::-webkit-slider-thumb{background:var(--infl);box-shadow
 .bench-edit-mode .bench-edit-fields{display:flex}
 .bench-edit-fields input{width:100%;border:1px solid var(--border);border-radius:5px;padding:4px 6px;font-size:.75rem;font-family:'DM Sans',sans-serif;background:var(--surface2);color:var(--text);outline:none}
 .bench-edit-fields input:focus{border-color:var(--accent)}
+.bench-edit-fields input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .bench-edit-done{margin-top:4px;padding:3px 0;background:var(--accent);color:#fff;border:none;border-radius:5px;font-size:.72rem;font-weight:600;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif}
 .b-check{position:absolute;top:6px;left:6px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:#fff;opacity:0;transition:opacity .2s}
 .bench-item.selected .b-check{opacity:1}
@@ -475,7 +480,7 @@ table.sched tbody tr:hover td{background:var(--surface2)}
       <div class="sb-body" id="loan-body" style="max-height:0">
         <div style="padding:2px 4px 10px">
           <div class="cg">
-            <div class="lr"><label>Original Loan Amount ($) <i class="info-icon" data-tip="The original principal when the mortgage was taken out. Used to compute the full amortization schedule from origination date.">i</i></label><input type="number" id="origBal" class="ti" value="300000" min="1000" max="5000000" step="5000" oninput="update()"></div>
+            <div class="lr"><label>Original Loan Amount ($) <i class="info-icon" data-tip="The original principal when the mortgage was taken out. Used to compute the full amortization schedule from origination date.">i</i></label><input type="number" id="origBal" class="ti" value="300000" min="1000" max="5000000" step="5000" oninput="update()" onkeydown="blockInvalidNumKeys(event)"></div>
             <input type="range" id="origBalR" min="10000" max="2000000" step="5000" value="300000" oninput="syncFromRange(this,'origBal')">
           </div>
           <div class="cg">
@@ -484,21 +489,21 @@ table.sched tbody tr:hover td{background:var(--surface2)}
                 <select id="origDateMon" class="ti mon-sel" onchange="syncMonthCtrl('origDate')">
                   <option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Aug</option><option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
                 </select>
-                <input type="number" id="origDateYr" class="ti mon-yr" value="2011" min="1970" max="2100" oninput="syncMonthCtrl('origDate')">
+                <input type="number" id="origDateYr" class="ti mon-yr" value="2011" min="1970" max="2100" oninput="syncMonthCtrl('origDate')" onkeydown="blockInvalidNumKeys(event)">
                 <input type="hidden" id="origDate" value="2011-01">
               </div>
             </div>
           </div>
           <div class="cg">
-            <div class="lr"><label>Mortgage APR (%) <i class="info-icon" data-tip="Your annual percentage rate. Determines monthly payment and total interest cost. When you change APR, Expected Return updates to match — the fair breakeven baseline.">i</i></label><input type="number" id="aprT" class="ti" value="4.45" min="0.1" max="20" step="0.05" oninput="aprChanged()"></div>
+            <div class="lr"><label>Mortgage APR (%) <i class="info-icon" data-tip="Your annual percentage rate. Determines monthly payment and total interest cost. When you change APR, Expected Return updates to match — the fair breakeven baseline.">i</i></label><input type="number" id="aprT" class="ti" value="4.45" min="0.1" max="20" step="0.05" oninput="aprChanged()" onkeydown="blockInvalidNumKeys(event)"></div>
             <input type="range" id="aprR" min="0.1" max="20" step="0.05" value="4.45" oninput="$('aprT').value=this.value;aprChanged()">
           </div>
           <div class="cg">
-            <div class="lr"><label>Loan Term (Years) <i class="info-icon" data-tip="Original mortgage term in years (e.g. 30). Combined with origination date to determine the payoff date.">i</i></label><input type="number" id="yrT" class="ti" value="30" min="1" max="30" step="1" oninput="update()"></div>
+            <div class="lr"><label>Loan Term (Years) <i class="info-icon" data-tip="Original mortgage term in years (e.g. 30). Combined with origination date to determine the payoff date.">i</i></label><input type="number" id="yrT" class="ti" value="30" min="1" max="30" step="1" oninput="update()" onkeydown="blockInvalidNumKeys(event)"></div>
             <input type="range" id="yrR" min="1" max="30" step="1" value="30" oninput="syncFromRange(this,'yrT')">
           </div>
           <div class="cg">
-            <div class="lr"><label>Expected Return (%) <i class="info-icon" data-tip="Annualised return you expect from investing the lump sum. Defaults to your Mortgage APR — the exact breakeven point. Edit freely; changing this won't affect your APR.">i</i></label><input type="number" id="roiT" class="ti" value="4.45" min="0" max="60" step="0.5" oninput="roiChanged()"></div>
+            <div class="lr"><label>Expected Return (%) <i class="info-icon" data-tip="Annualised return you expect from investing the lump sum. Defaults to your Mortgage APR — the exact breakeven point. Edit freely; changing this won't affect your APR.">i</i></label><input type="number" id="roiT" class="ti" value="4.45" min="0" max="60" step="0.5" oninput="roiChanged()" onkeydown="blockInvalidNumKeys(event)"></div>
             <input type="range" id="roiR" min="0" max="60" step="0.5" value="4.45" oninput="syncFromRange(this,'roiT');roiChanged()">
           </div>
         </div>
@@ -519,10 +524,10 @@ table.sched tbody tr:hover td{background:var(--surface2)}
       <div class="sb-body" id="adv-body" style="max-height:0">
         <div style="padding:2px 4px 10px">
           <div class="cg">
-            <div class="lr"><label>Current Balance Override ($) <i class="info-icon" data-tip="Override the auto-calculated balance. Use this if you have a refinanced loan, made extra payments, or have an exact payoff quote from your lender. Defaults live to computed balance.">i</i></label><input type="number" id="curBal" class="ti adv-i" placeholder="Computing…" oninput="this.dataset.userSet=this.value?'1':'';update()" onblur="if(!this.value)delete this.dataset.userSet"></div>
+            <div class="lr"><label>Current Balance Override ($) <i class="info-icon" data-tip="Override the auto-calculated balance. Use this if you have a refinanced loan, made extra payments, or have an exact payoff quote from your lender. Defaults live to computed balance.">i</i></label><input type="number" id="curBal" class="ti adv-i" placeholder="Computing…" oninput="this.dataset.userSet=this.value?'1':'';update()" onblur="if(!this.value)delete this.dataset.userSet" onkeydown="blockInvalidNumKeys(event)"></div>
           </div>
           <div class="cg">
-            <div class="lr"><label>Lump Sum to Deploy ($) <i class="info-icon" data-tip="The amount you'd invest instead of paying off the mortgage. Defaults to your current balance — the classic apples-to-apples comparison.">i</i></label><input type="number" id="lumpSum" class="ti adv-i" placeholder="= Balance" oninput="this.dataset.userSet=this.value?'1':'';update()" onblur="if(!this.value)delete this.dataset.userSet"></div>
+            <div class="lr"><label>Lump Sum to Deploy ($) <i class="info-icon" data-tip="The amount you'd invest instead of paying off the mortgage. Defaults to your current balance — the classic apples-to-apples comparison.">i</i></label><input type="number" id="lumpSum" class="ti adv-i" placeholder="= Balance" oninput="this.dataset.userSet=this.value?'1':'';update()" onblur="if(!this.value)delete this.dataset.userSet" onkeydown="blockInvalidNumKeys(event)"></div>
           </div>
           <div class="cg">
             <div class="lr"><label>Deploy Month <i class="info-icon" data-tip="The month you plan to invest the lump sum. Defaults to today. If this date is after the mortgage end, the invest column will show no growth.">i</i></label>
@@ -530,7 +535,7 @@ table.sched tbody tr:hover td{background:var(--surface2)}
                 <select id="deployMonMon" class="ti adv-i mon-sel" onchange="syncMonthCtrl('deployMon')">
                   <option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Aug</option><option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
                 </select>
-                <input type="number" id="deployMonYr" class="ti adv-i mon-yr" min="1970" max="2100" oninput="syncMonthCtrl('deployMon')">
+                <input type="number" id="deployMonYr" class="ti adv-i mon-yr" min="1970" max="2100" oninput="syncMonthCtrl('deployMon')" onkeydown="blockInvalidNumKeys(event)">
                 <input type="hidden" id="deployMon">
               </div>
             </div>
@@ -545,7 +550,7 @@ table.sched tbody tr:hover td{background:var(--surface2)}
           </div>
           <div id="inflControls" style="display:none">
             <div class="cg">
-              <div class="lr"><label>Annual Inflation (%) <i class="info-icon" data-tip="Expected average annual CPI inflation. The US long-run average is ~2.5–3%. Live CPI is fetched automatically on load.">i</i></label><input type="number" id="inflT" class="ti infl-i" value="3.0" min="0" max="15" step="0.1" oninput="update()"></div>
+              <div class="lr"><label>Annual Inflation (%) <i class="info-icon" data-tip="Expected average annual CPI inflation. The US long-run average is ~2.5–3%. Live CPI is fetched automatically on load.">i</i></label><input type="number" id="inflT" class="ti infl-i" value="3.0" min="0" max="15" step="0.1" oninput="update()" onkeydown="blockInvalidNumKeys(event)"></div>
               <input type="range" class="infl-r" min="0" max="15" step="0.1" value="3.0" oninput="syncFromRange(this,'inflT')">
               <p class="hint" id="inflHint"></p>
             </div>
@@ -648,7 +653,7 @@ table.sched tbody tr:hover td{background:var(--surface2)}
     <div class="brand">
       <h1>
         <span class="dh" id="brandName">Dhurandhar's</span> Dilemma
-        <span style="font-family:'DM Mono',monospace;font-size:.32em;color:var(--text2);font-style:normal;letter-spacing:.04em;vertical-align:middle;opacity:.5">v1.34</span>
+        <span style="font-family:'DM Mono',monospace;font-size:.32em;color:var(--text2);font-style:normal;letter-spacing:.04em;vertical-align:middle;opacity:.5">v1.41</span>
         <a href="https://youtu.be/w0aGzEHiR34" target="_blank" rel="noopener" title="Watch on YouTube" style="display:inline-flex;align-items:center;margin-left:8px;vertical-align:middle;color:#ff0000;text-decoration:none;opacity:.85;transition:opacity .2s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.85'">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
         </a>
@@ -790,7 +795,7 @@ table.sched tbody tr:hover td{background:var(--surface2)}
       <div class="card-inner">
         <div class="ikpi-grid">
           <div class="ikpi hl"><div class="kl">Real Return</div><div class="kv" id="ikRR">—</div><div class="ks" id="ikRRs"></div></div>
-          <div class="ikpi hl"><div class="kl">Real Cost of Debt</div><div class="kv" id="ikRD">—</div><div class="ks">APR − inflation</div></div>
+          <div class="ikpi hl"><div class="kl">Real Cost of Debt</div><div class="kv" id="ikRD">—</div><div class="ks">Fisher equation</div></div>
           <div class="ikpi"><div class="kl">Nominal Inv. End</div><div class="kv" id="ikNI">—</div><div class="ks">account balance</div></div>
           <div class="ikpi"><div class="kl">Real Inv. End</div><div class="kv" id="ikRI">—</div><div class="ks">today's $</div></div>
           <div class="ikpi"><div class="kl">Purchasing Power Lost</div><div class="kv" id="ikPP">—</div><div class="ks">nominal − real gain</div></div>
@@ -911,6 +916,7 @@ table.sched tbody tr:hover td{background:var(--surface2)}
 const $=id=>document.getElementById(id);
 const fmt=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
 const fmtp=n=>(n>=0?'+':'')+n.toFixed(2)+'%';
+function blockInvalidNumKeys(e){if(['e','E','+','-'].includes(e.key))e.preventDefault();}
 let chartMain,chartGrowth,chartIG,chartID,isDark=false;
 let showAgeCol=false,showPastRows=false,showYearly=false;
 
@@ -1656,7 +1662,7 @@ function update(){
   const seriesData={};
   selected.forEach(b=>seriesData[b.id]={inv:[],totInt:0,endVal:0,netGrowth:0,netAdv:[]});
 
-  let loanBal=curBal,cumInfl=1,totIntShared=0;
+  let loanBal=curBal,cumInfl=1,totIntShared=0,realTotIntShared=0;
   const nomArr=[],realArr=[];
   let html='';
   // age col: only show if user has birth year set AND toggled on
@@ -1751,13 +1757,21 @@ function update(){
   amortYearLabels.push(MOS[today.getMonth()]+" '"+String(today.getFullYear()).slice(2));
   amortCumPrin.push(0); amortCumInt.push(0); amortBal.push(Math.round(curBal));
 
+  const r2=n=>Math.round((n+Number.EPSILON)*100)/100;
   for(let mo=1;mo<=mRemaining;mo++){
-    const moInt=loanBal*r;
-    let moPrin=totalPmt-moInt;
-    if(moPrin>loanBal)moPrin=loanBal;
+    const isLastMo=(mo===mRemaining);
+    const moInt=r2(loanBal*r);
+    let moPrin;
+    if(isLastMo){
+      moPrin=r2(loanBal); // final payment exactly zeroes the balance
+    } else {
+      moPrin=r2(totalPmt-moInt);
+      if(moPrin>loanBal)moPrin=r2(loanBal);
+    }
     const moOpen=loanBal;
-    loanBal=Math.max(0,loanBal-moPrin);
+    loanBal=r2(Math.max(0,loanBal-moPrin));
     totIntShared+=moInt;
+    realTotIntShared+=moInt/cumInfl;
     cumInfl*=(1+monthlyInflRate);
     amortCP+=moPrin; amortCI+=moInt;
     cumPmt+=moPrin+moInt;
@@ -1768,7 +1782,6 @@ function update(){
     labels.push(MOS[moDateObj.getMonth()]+" '"+String(moDateObj.getFullYear()).slice(2));
     nomArr.push(0);realArr.push(0);
 
-    const isLastMo=(mo===mRemaining);
     const remBal=isLastMo?0:Math.max(0,loanBal);
 
     // collect yearly amort chart snapshot
@@ -1887,7 +1900,7 @@ function update(){
     const realInvEnd=finalInv/cumInfl;
     const realNetGain=realInvEnd-lump;
     const ppLost=(finalInv-lump)-(realInvEnd-lump);
-    const realTotInt=totInt/cumInfl;
+    const realTotInt=realTotIntShared;
     const debtEros=totInt-realTotInt;
     const realAdv=realNetGain-realTotInt;
     $('inflRateDisplay').textContent=infl.toFixed(1)+'%';
@@ -2052,14 +2065,17 @@ async function fetchLiveData(manual=false){
   if(btn)btn.classList.add('spinning');
   try{
     // BTC via CoinGecko
-    const btcRes=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
-    const btcJson=await btcRes.json();
-    const btcPrice=btcJson?.bitcoin?.usd;
-    if(btcPrice){
-      const cagr=(Math.pow(btcPrice/6,1/14)-1)*100;
-      const btc=benches.find(b=>b.id==='btc');
-      if(btc){btc.ret=Math.round(cagr*10)/10;btc.period='14-yr CAGR (live)';}
-    }
+    try{
+      const btcRes=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+      if(!btcRes.ok)throw new Error(`CoinGecko ${btcRes.status}`);
+      const btcJson=await btcRes.json();
+      const btcPrice=btcJson?.bitcoin?.usd;
+      if(btcPrice){
+        const cagr=(Math.pow(btcPrice/6,1/14)-1)*100;
+        const btc=benches.find(b=>b.id==='btc');
+        if(btc){btc.ret=Math.round(cagr*10)/10;btc.period='14-yr CAGR (live)';}
+      }
+    }catch(e){}
     // CPI from BLS
     try{
       const cpiRes=await fetch('https://api.bls.gov/publicAPI/v2/timeseries/data/CUUR0000SA0',{

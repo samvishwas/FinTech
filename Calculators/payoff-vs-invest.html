@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="version" content="1.20">
+<meta name="version" content="1.38">
 <meta name="author" content="Sam Vishwas">
-<title>Dhurandhar's Dilemma v1.20 — Pay Off vs. Invest</title>
+<title>Dhurandhar's Dilemma v1.34 — Pay Off vs. Invest</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -47,6 +47,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .sb-scroll{flex:1;overflow-y:auto;padding:14px 18px 24px}
 .sb-scroll::-webkit-scrollbar{width:4px}
 .sb-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.sb-btn-discard,.sb-btn-save{padding:5px 11px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;border:1.5px solid var(--border);transition:all .2s;white-space:nowrap}
+.sb-btn-discard{background:transparent;color:var(--text2)}
+.sb-btn-discard:hover{border-color:var(--loss);color:var(--loss);background:var(--loss-bg)}
+.sb-btn-save{background:var(--accent);color:#fff;border-color:var(--accent)}
+.sb-btn-save:hover{opacity:.88}
 
 /* data status */
 .data-bar{display:flex;align-items:center;gap:7px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;margin-bottom:14px;font-size:.71rem;color:var(--text2)}
@@ -84,7 +89,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* label row */
 .lr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
-.cg:last-child{margin-bottom:0}
+.cg{margin-bottom:10px}.cg:last-child{margin-bottom:0}
+.mon-yr-wrap{display:flex;gap:3px;align-items:center}
+.mon-sel{width:54px!important;padding:5px 4px!important;font-size:.78rem!important;cursor:pointer}
+.mon-yr{width:58px!important;font-size:.78rem!important;text-align:center!important;padding:5px 4px!important}
 .lr label{font-size:.78rem;font-weight:500;color:var(--text2)}
 .ti{border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-family:var(--mono);font-size:.82rem;font-weight:500;color:var(--accent);background:var(--surface2);transition:border-color .2s,background .3s;outline:none;width:105px;text-align:right}
 .ti:focus{border-color:var(--accent);background:var(--accent-lt)}
@@ -228,6 +236,15 @@ input[type=range].infl-r::-webkit-slider-thumb{background:var(--infl);box-shadow
 .sched-pill.csv-pill:hover{background:var(--adv);color:#fff;border-color:var(--adv)}
 .sched-pill svg{width:10px;height:10px;flex-shrink:0}
 .sched-toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.past-toggle-wrap{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:.69rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;user-select:none}
+.past-toggle-wrap:hover{border-color:var(--accent);color:var(--accent)}
+.past-toggle-wrap.active{background:var(--accent-lt);border-color:var(--accent);color:var(--accent)}
+.past-mini-toggle{position:relative;width:26px;height:14px;flex-shrink:0}
+.past-mini-toggle input{opacity:0;width:0;height:0;position:absolute}
+.past-mini-track{position:absolute;inset:0;background:var(--border);border-radius:20px;cursor:pointer;transition:background .25s}
+.past-toggle-wrap.active .past-mini-track{background:var(--accent)}
+.past-mini-track::after{content:'';position:absolute;width:10px;height:10px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform .25s}
+.past-toggle-wrap.active .past-mini-track::after{transform:translateX(12px)}
 table.sched tr.past-row td{opacity:.45}
 table.sched tr.past-row td:first-child{color:var(--text2);font-style:normal}
 .tbl-wrap{overflow-x:auto;max-height:460px}
@@ -424,9 +441,13 @@ table.sched tbody tr:hover td{background:var(--surface2)}
 <div class="sidebar" id="sidebar">
   <div class="sb-head">
     <h2>⚙ Configuration</h2>
-    <button class="sb-close" onclick="closeSidebar()">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
+    <div style="display:flex;align-items:center;gap:7px;margin-left:auto">
+      <button class="sb-btn-discard" onclick="discardSidebar()">Discard</button>
+      <button class="sb-btn-save" onclick="saveSidebar()">Save</button>
+      <button class="sb-close" onclick="closeSidebar()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
   </div>
   <div class="sb-scroll">
 
@@ -458,8 +479,15 @@ table.sched tbody tr:hover td{background:var(--surface2)}
             <input type="range" id="origBalR" min="10000" max="2000000" step="5000" value="300000" oninput="syncFromRange(this,'origBal')">
           </div>
           <div class="cg">
-            <div class="lr"><label>Origination Date <i class="info-icon" data-tip="The month and year your mortgage started. Used to calculate how much time has elapsed and how much remains.">i</i></label></div>
-            <input type="month" id="origDate" class="ti full" value="2011-01" oninput="update()" style="text-align:left">
+            <div class="lr"><label>Origination Month <i class="info-icon" data-tip="The month and year your mortgage started. Used to calculate how much time has elapsed and how much remains.">i</i></label>
+              <div class="mon-yr-wrap">
+                <select id="origDateMon" class="ti mon-sel" onchange="syncMonthCtrl('origDate')">
+                  <option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Aug</option><option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+                </select>
+                <input type="number" id="origDateYr" class="ti mon-yr" value="2011" min="1970" max="2100" oninput="syncMonthCtrl('origDate')">
+                <input type="hidden" id="origDate" value="2011-01">
+              </div>
+            </div>
           </div>
           <div class="cg">
             <div class="lr"><label>Mortgage APR (%) <i class="info-icon" data-tip="Your annual percentage rate. Determines monthly payment and total interest cost. When you change APR, Expected Return updates to match — the fair breakeven baseline.">i</i></label><input type="number" id="aprT" class="ti" value="4.45" min="0.1" max="20" step="0.05" oninput="aprChanged()"></div>
@@ -494,10 +522,18 @@ table.sched tbody tr:hover td{background:var(--surface2)}
             <div class="lr"><label>Current Balance Override ($) <i class="info-icon" data-tip="Override the auto-calculated balance. Use this if you have a refinanced loan, made extra payments, or have an exact payoff quote from your lender. Defaults live to computed balance.">i</i></label><input type="number" id="curBal" class="ti adv-i" placeholder="Computing…" oninput="this.dataset.userSet=this.value?'1':'';update()" onblur="if(!this.value)delete this.dataset.userSet"></div>
           </div>
           <div class="cg">
-            <div class="lr"><label>Lump Sum to Deploy ($) <i class="info-icon" data-tip="The amount you'd invest instead of paying off the mortgage. Defaults to your current balance — the classic apples-to-apples comparison.">i</i></label><input type="number" id="lumpSum" class="ti adv-i" placeholder="= Balance" oninput="update()"></div>
+            <div class="lr"><label>Lump Sum to Deploy ($) <i class="info-icon" data-tip="The amount you'd invest instead of paying off the mortgage. Defaults to your current balance — the classic apples-to-apples comparison.">i</i></label><input type="number" id="lumpSum" class="ti adv-i" placeholder="= Balance" oninput="this.dataset.userSet=this.value?'1':'';update()" onblur="if(!this.value)delete this.dataset.userSet"></div>
           </div>
           <div class="cg">
-            <div class="lr"><label>Deploy Month <i class="info-icon" data-tip="The month you plan to invest the lump sum. Defaults to today. If this date is after the mortgage end, the invest column will show no growth.">i</i></label><input type="month" id="deployMon" class="ti adv-i" oninput="update()" style="width:105px;text-align:left;font-family:var(--mono);font-size:.82rem"></div>
+            <div class="lr"><label>Deploy Month <i class="info-icon" data-tip="The month you plan to invest the lump sum. Defaults to today. If this date is after the mortgage end, the invest column will show no growth.">i</i></label>
+              <div class="mon-yr-wrap">
+                <select id="deployMonMon" class="ti adv-i mon-sel" onchange="syncMonthCtrl('deployMon')">
+                  <option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Aug</option><option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+                </select>
+                <input type="number" id="deployMonYr" class="ti adv-i mon-yr" min="1970" max="2100" oninput="syncMonthCtrl('deployMon')">
+                <input type="hidden" id="deployMon">
+              </div>
+            </div>
           </div>
           <div class="sb-divider"></div>
           <div class="toggle-row">
@@ -612,7 +648,7 @@ table.sched tbody tr:hover td{background:var(--surface2)}
     <div class="brand">
       <h1>
         <span class="dh" id="brandName">Dhurandhar's</span> Dilemma
-        <span style="font-family:'DM Mono',monospace;font-size:.32em;color:var(--text2);font-style:normal;letter-spacing:.04em;vertical-align:middle;opacity:.5">v1.20</span>
+        <span style="font-family:'DM Mono',monospace;font-size:.32em;color:var(--text2);font-style:normal;letter-spacing:.04em;vertical-align:middle;opacity:.5">v1.34</span>
         <a href="https://youtu.be/w0aGzEHiR34" target="_blank" rel="noopener" title="Watch on YouTube" style="display:inline-flex;align-items:center;margin-left:8px;vertical-align:middle;color:#ff0000;text-decoration:none;opacity:.85;transition:opacity .2s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.85'">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
         </a>
@@ -665,7 +701,7 @@ table.sched tbody tr:hover td{background:var(--surface2)}
   <div class="card-hdr expanded" onclick="cardToggle('verdict')">
       <div class="card-hdr-title">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Analysis &amp; Charts
+        <span id="verdictTitle">Analysis &amp; Charts</span>
       </div>
       <div class="card-hdr-right" style="flex:1;justify-content:flex-end">
         <div class="bench-pill-row" id="benchPillRow" onclick="event.stopPropagation()"></div>
@@ -675,15 +711,20 @@ table.sched tbody tr:hover td{background:var(--surface2)}
     </div>
 
     <div class="card-body open" id="verdict-body" style="max-height:4000px">
-      <div class="charts-row">
-        <div>
-          <div class="chart-label" style="text-align:center">Interest Cost vs. Investment Gain</div>
-          <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+      <div id="investChartWrap">
+        <div class="charts-row">
+          <div>
+            <div class="chart-label" style="text-align:center">Interest Cost vs. Investment Gain</div>
+            <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+          </div>
+          <div>
+            <div class="chart-label" style="text-align:center">Investment Growth Over Time — All Selected Benchmarks</div>
+            <div class="chart-wrap"><canvas id="growthChart"></canvas></div>
+          </div>
         </div>
-        <div>
-          <div class="chart-label" style="text-align:center">Investment Growth Over Time — All Selected Benchmarks</div>
-          <div class="chart-wrap"><canvas id="growthChart"></canvas></div>
-        </div>
+      </div>
+      <div id="amortChartWrap" style="display:none">
+        <div class="chart-wrap" style="height:280px"><canvas id="amortChart"></canvas></div>
       </div>
     </div>
   </div>
@@ -694,19 +735,23 @@ table.sched tbody tr:hover td{background:var(--surface2)}
 <div class="card-hdr collapsed" onclick="cardToggle('sched')">
       <div class="card-hdr-title">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Year-by-Year Schedule
+        <span id="schedTitle">Month-by-Month Schedule</span>
       </div>
       <div class="card-hdr-right" style="flex:1; justify-content:flex-end;">
         <span class="card-hdr-meta" id="schedMeta" style="display:none"></span>
         <div class="sched-loan-info" id="schedLoanInfo"></div>
         <div class="sched-toolbar">
+          <button class="sched-pill" id="pastToggleBtn" onclick="event.stopPropagation();togglePastRows()" title="Show/hide past months">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 9 15"/></svg>
+            Past
+          </button>
+          <button class="sched-pill" id="viewToggleBtn" onclick="event.stopPropagation();toggleView()" title="Switch between monthly and yearly view">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Yearly
+          </button>
           <button class="sched-pill" id="ageToggleBtn" onclick="event.stopPropagation();toggleAgeCol()" title="Toggle Age column">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             Age
-          </button>
-          <button class="sched-pill" id="pastToggleBtn" onclick="event.stopPropagation();togglePastRows()" title="Show/hide past years">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>
-            Past
           </button>
           <button class="sched-pill csv-pill" onclick="event.stopPropagation();exportCSV()" title="Export to CSV">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -864,10 +909,10 @@ table.sched tbody tr:hover td{background:var(--surface2)}
 <div id="infoTip"></div>
 <script>
 const $=id=>document.getElementById(id);
-const fmt=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
+const fmt=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
 const fmtp=n=>(n>=0?'+':'')+n.toFixed(2)+'%';
 let chartMain,chartGrowth,chartIG,chartID,isDark=false;
-let showAgeCol=false,showPastRows=false;
+let showAgeCol=false,showPastRows=false,showYearly=false;
 
 /* ── INFO TOOLTIP ENGINE ── */
 (function(){
@@ -908,39 +953,114 @@ let showAgeCol=false,showPastRows=false;
 })();
 
 /* ── SCHEDULE TOGGLES ── */
+function ensureSchedOpen(){
+  const body=$('sched-body');
+  if(!body.classList.contains('open')) cardToggle('sched');
+}
 function toggleAgeCol(){
+  ensureSchedOpen();
   showAgeCol=!showAgeCol;
   $('ageToggleBtn').classList.toggle('active',showAgeCol);
   update();
 }
 function togglePastRows(){
+  ensureSchedOpen();
   showPastRows=!showPastRows;
   $('pastToggleBtn').classList.toggle('active',showPastRows);
+  update();
+}
+function toggleView(){
+  ensureSchedOpen();
+  showYearly=!showYearly;
+  $('viewToggleBtn').classList.toggle('active',showYearly);
+  $('viewToggleBtn').innerHTML=showYearly
+    ?`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Monthly`
+    :`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Yearly`;
+  $('schedTitle').textContent=showYearly?'Yearly Schedule':'Month-by-Month Schedule';
   update();
 }
 
 /* ── CSV EXPORT ── */
 function exportCSV(){
-  const rows=[];
-  const ths=[...$('schedHead').querySelectorAll('th')];
-  rows.push(ths.map(th=>'"'+th.textContent.trim()+'"').join(','));
-  const trs=[...$('schedBody').querySelectorAll('tr')];
-  trs.forEach(tr=>{
-    const tds=[...tr.querySelectorAll('td')];
-    rows.push(tds.map(td=>'"'+td.textContent.trim().replace(/"/g,'""')+'"').join(','));
-  });
-  const csv=rows.join('\n');
-  // Item 4: versioned sortable timestamp filename
-  const ver=document.querySelector('meta[name=version]')?.content||'1.18';
+  // Always exports the full loan term, monthly, fixed columns — independent of screen config
+  const origP  =parseFloat($('origBal').value)||300000;
+  const origStr=$('origDate').value||'2011-01';
+  const apr    =parseFloat($('aprT').value)||4.45;
+  const termYrs=parseInt($('yrT').value)||30;
+  const totalMos=termYrs*12;
+  const r=apr/100/12;
+  const stdPmt=calcPmt(origP,apr/100,totalMos);
+  const [origY,origM0]=origStr.split('-').map(Number); // origM0 is 1-based
+  const MON_FULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const n=v=>parseFloat(v.toFixed(2));
+
+  // lump sum / benchmark setup
+  const lsRaw=parseFloat($('lumpSum').value);
+  const amortOnly=!isNaN(lsRaw)&&lsRaw===0;
+  const lump=amortOnly?0:(isNaN(lsRaw)||lsRaw<=0?0:lsRaw);
+  const selected=benches.filter(b=>b.selected);
+  const bMonthlyRet={};
+  selected.forEach(b=>{bMonthlyRet[b.id]=b.ret/100/12;});
+
+  // deploy offset: direct months from origination to deploy month (integer arithmetic, no UTC shift)
+  let deployOffset=0;
+  if(!amortOnly){
+    const deployMonVal=($('deployMon')&&$('deployMon').value)?$('deployMon').value:'';
+    let depY,depM0;
+    if(deployMonVal){[depY,depM0]=deployMonVal.split('-').map(Number);}
+    else{const t=new Date();depY=t.getFullYear();depM0=t.getMonth()+1;}
+    deployOffset=Math.max(0,(depY-origY)*12+(depM0-origM0));
+  }
+
+  // header
+  const hdr=['"#"','"Year"','"Month Number"','"Month Name"','"Open Bal"','"Principal"','"Interest"','"Monthly Pmt"','"Rem Bal"','"Total Pmt"'];
+  if(!amortOnly){
+    hdr.push('"Net Adv ('+selected[0].label+')"');
+    selected.forEach(b=>hdr.push('"'+b.label+' Value"'));
+  }
+  const rows=[hdr.join(',')];
+
+  let bal=origP,cumPmtCSV=0;
+  const bState={};
+  selected.forEach(b=>{bState[b.id]={inv:0};});
+
+  for(let mo=1;mo<=totalMos;mo++){
+    const moInt=bal*r;
+    let moPrin=stdPmt-moInt;
+    if(moPrin>bal)moPrin=bal;
+    const moOpen=bal;
+    bal=Math.max(0,bal-moPrin);
+    cumPmtCSV+=moPrin+moInt;
+    const remBal=mo===totalMos?0:Math.max(0,bal);
+    const dTotalM=origM0-1+mo-1; // 0-based months since Jan of origY
+    const dYear=origY+Math.floor(dTotalM/12);
+    const dMon=dTotalM%12; // 0-based month
+    const row=[mo,dYear,dMon+1,'"'+MON_FULL[dMon]+'"',
+               n(moOpen),n(moPrin),n(moInt),n(moPrin+moInt),n(remBal),n(cumPmtCSV)];
+    if(!amortOnly){
+      selected.forEach(b=>{
+        const st=bState[b.id];
+        if(mo<=deployOffset){st.inv=0;}
+        else if(st.inv===0){st.inv=lump;}
+        else{st.inv*=(1+bMonthlyRet[b.id]);}
+      });
+      const inv0=bState[selected[0].id].inv;
+      row.push(n(inv0>0?inv0-remBal:0));  // Net Adv: My Own Value minus Rem Bal
+      selected.forEach(b=>row.push(n(bState[b.id].inv)));
+    }
+    rows.push(row.join(','));
+  }
+
+  const ver=document.querySelector('meta[name=version]')?.content||'1.31';
   const now=new Date();
   const ts=now.getFullYear()+'-'
     +String(now.getMonth()+1).padStart(2,'0')+'-'
     +String(now.getDate()).padStart(2,'0')+'-'
-    +String(now.getHours()).padStart(2,'0')
-    +String(now.getMinutes()).padStart(2,'0')
+    +String(now.getHours()).padStart(2,'0')+'-'
+    +String(now.getMinutes()).padStart(2,'0')+'-'
     +String(now.getSeconds()).padStart(2,'0');
   const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(rows.join('\n'));
   a.download=`payoff-vs-invest-(${ver})-${ts}.csv`;
   a.click();
 }
@@ -957,8 +1077,27 @@ const BENCH_DEFS=[
 let benches=BENCH_DEFS.map(b=>({...b}));
 
 /* ── SIDEBAR / BACKDROP ── */
-function openSidebar(){$('sidebar').classList.add('open');$('backdrop').classList.add('open')}
+let _sbSnapshot=null;
+function openSidebar(){
+  _sbSnapshot=[];
+  $('sidebar').querySelectorAll('input,select').forEach(el=>{
+    _sbSnapshot.push({el,value:el.value,checked:el.checked,userSet:el.dataset.userSet});
+  });
+  $('sidebar').classList.add('open');$('backdrop').classList.add('open');
+}
 function closeSidebar(){$('sidebar').classList.remove('open');$('backdrop').classList.remove('open')}
+function discardSidebar(){
+  if(_sbSnapshot){
+    _sbSnapshot.forEach(({el,value,checked,userSet})=>{
+      el.value=value;
+      if(el.type==='checkbox'||el.type==='radio')el.checked=checked;
+      if(userSet!==undefined)el.dataset.userSet=userSet;else delete el.dataset.userSet;
+    });
+    update();
+  }
+  closeSidebar();
+}
+function saveSidebar(){closeSidebar();}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSidebar();closeShareModal()}});
 
 /* ── SIDEBAR SECTION TOGGLE ── */
@@ -983,6 +1122,23 @@ function cardToggle(id){
 function syncFromRange(rangeEl,targetId){
   $(targetId).value=rangeEl.value;
   update();
+}
+
+/* ── MONTH-YEAR CONTROL HELPERS ── */
+function syncMonthCtrl(id){
+  const mon=$(id+'Mon').value;
+  const yr=$(id+'Yr').value;
+  if(mon&&yr&&String(yr).length===4)$(id).value=yr+'-'+mon;
+  update();
+}
+function setMonthCtrl(id,yyyymm){
+  if(!yyyymm)return;
+  const parts=yyyymm.split('-');
+  if(parts.length<2)return;
+  const yr=parts[0],mon=parts[1];
+  $(id+'Mon').value=mon;
+  $(id+'Yr').value=yr;
+  $(id).value=yyyymm;
 }
 
 /* ── APR CHANGED — keep ROI in sync ── */
@@ -1398,29 +1554,34 @@ function update(){
     if(cbEl&&!cbEl.dataset.userSet)cbEl.placeholder=fmt(computed).replace('$','').replace(/,/g,'');
   }
 
-  let lump=parseFloat($('lumpSum').value);
-  if(isNaN(lump)||lump<=0)lump=curBal;
+  // pre-fill Lump Sum with current balance on load (if user hasn't changed it)
+  const lsEl=$('lumpSum');
+  if(lsEl&&!lsEl.dataset.userSet)lsEl.value=Math.round(curBal);
+  const lsRaw=parseFloat($('lumpSum').value);
+  const amortOnly=!isNaN(lsRaw)&&lsRaw===0;
+  let lump=amortOnly?0:(isNaN(lsRaw)||lsRaw<=0?curBal:lsRaw);
+
+  // amortOnly UI toggling
+  const vtEl=$('verdictTitle');
+  if(vtEl)vtEl.textContent=amortOnly?'Amortization Overview':'Analysis & Charts';
+  const iwEl=$('investChartWrap'),awEl=$('amortChartWrap');
+  if(iwEl)iwEl.style.display=amortOnly?'none':'';
+  if(awEl)awEl.style.display=amortOnly?'':'none';
+  const bpr=$('benchPillRow');
+  if(bpr)bpr.style.display=amortOnly?'none':'';
+  const icEl=$('inflCard');
+  if(icEl)icEl.style.display=(amortOnly||!inflOn)?'none':'';
 
   const r=apr/100/12;
   const stdPmt=calcPmt(origP,apr/100,totalMos);
   const totalPmt=stdPmt;
   const yearsLeft=Math.ceil(mRemaining/12);
-  const startYear=origDate.getFullYear()+eYrs;
-
-  // Deploy Month → offset in whole years (for year-by-year schedule)
-  // depFracYear = fraction of the deploy-year that remains after (and including) deploy month
-  // e.g. deploy Jan → 12/12 = 1.0 (full year's growth), deploy Jul → 6/12 = 0.5
+  // Deploy Month → offset in months from today
   const deployMonVal=($('deployMon')&&$('deployMon').value)?$('deployMon').value:'';
-  let deployOffset=0;
-  let depFracYear=1; // default: full year
+  let deployOffsetMos=0;
   if(deployMonVal){
     const depDate=new Date(deployMonVal+'-01');
-    const depYr=depDate.getFullYear();
-    const depMon=depDate.getMonth(); // 0-based: Jan=0, Dec=11
-    // whole years between startYear (y=1 row) and the deploy year
-    deployOffset=Math.max(0,depYr-startYear);
-    // months remaining in deploy year from deploy month onward (inclusive)
-    depFracYear=(12-depMon)/12;
+    deployOffsetMos=Math.max(0,(depDate.getFullYear()-today.getFullYear())*12+(depDate.getMonth()-today.getMonth()));
   }
 
   // inflation Fisher
@@ -1453,7 +1614,9 @@ function update(){
   const remSchedInt=stdPmt*mRemaining-curBal;        // interest left from here
   const intPaid=Math.max(0,totalSchedInt-remSchedInt);
 
-  // top KPI grid — 5 tiles
+  // top KPI grid
+  const lifetimeTotal=stdPmt*totalMos;
+  const lifetimeInt=lifetimeTotal-origP;
   $('kpiMeta').textContent=`${fmt(curBal)} remaining · ${rYrs}y ${rMos}m left`;
   $('kpiGrid').innerHTML=`
     <div class="kpi">
@@ -1476,10 +1639,15 @@ function update(){
       <div class="kv" id="kpiInt">—</div>
       <div class="ks" id="kpiIntSub">Paid: ${fmt(intPaid)}</div>
     </div>
-    <div class="kpi pos">
+    ${amortOnly?`<div class="kpi">
+      <div class="kl">Lifetime Total Payment</div>
+      <div class="kv">${fmt(lifetimeTotal)}</div>
+      <div class="ks">Loan: ${fmt(origP)} · Interest: ${fmt(lifetimeInt)}</div>
+    </div>`:''}
+    ${amortOnly?'':`<div class="kpi pos">
       <div class="kl">Lump Sum To Be Invested</div>
       <div class="kv">${fmt(lump)}</div>
-    </div>`;
+    </div>`}`;
 
   // run schedule for all selected benchmarks
   const selected=benches.filter(b=>b.selected);
@@ -1503,103 +1671,181 @@ function update(){
   }
 
   // build table header
-  let hh=`<th>Yr</th>`;
+  let hh=`<th>${showYearly?'Yr':'#'}</th>`;
   if(ageCol)hh+=`<th class="age-th">Age</th>`;
-  hh+=`<th>Year</th><th>Open Bal</th><th>Principal</th><th>Interest</th><th>Total Pmt</th><th>Rem Bal</th>`;
-  selected.forEach(b=>hh+=`<th style="color:${b.color}">${b.label} Value</th>`);
-  if(inflOn)hh+=`<th class="infl-th">Real (${selected[0].label})</th>`;
-  hh+=`<th>Net Adv (${selected[0].label})</th>`;
+  hh+=`<th>${showYearly?'Year':'Month'}</th><th>Open Bal</th><th>Principal</th><th>Interest</th><th>Monthly Pmt</th><th>${showYearly?'End Bal':'Rem Bal'}</th><th>Total Pmt</th>`;
+  if(!amortOnly){
+    hh+=`<th>Net Adv (${selected[0].label})</th>`;
+    selected.forEach(b=>hh+=`<th style="color:${b.color}">${b.label} Value</th>`);
+    if(inflOn)hh+=`<th class="infl-th">Real (${selected[0].label})</th>`;
+  }
   $('schedHead').innerHTML=hh;
 
-  // per-benchmark state — inv is 0 until deploy year, then starts at lump
+  // per-benchmark state
   const bState={};
   selected.forEach(b=>{bState[b.id]={inv:0}});
+  // monthly return rates (annualised → monthly compounding)
+  const bMonthlyRet={};
+  selected.forEach(b=>{bMonthlyRet[b.id]=b.ret/100/12;});
+  const monthlyInflRate=Math.pow(1+infl/100,1/12)-1;
 
-  // ── PAST ROWS (elapsed years, re-amortized from origination) ──
-  if(showPastRows&&eYrs>0){
+  // ── PAST ROWS (elapsed months, re-amortized from origination) ──
+  let cumPmt=0;
+  if(showPastRows&&mElapsedRaw>0){
     let pastBal=origP;
-    const origYear=origDate.getFullYear();
-    const pastColspan=1+(ageCol?1:0)+7+selected.length+(inflOn?1:0)+1;
-    for(let py=1;py<=eYrs;py++){
-      let pyInt=0,pyPrin=0;
-      const pyOpen=pastBal;
-      for(let m=0;m<12;m++){
-        const mi=pastBal*r;
-        let mp=stdPmt-mi;
-        if(mp>pastBal)mp=pastBal;
-        pyInt+=mi;pyPrin+=mp;
-        pastBal=Math.max(0,pastBal-mp);
+    const pastColspan=1+(ageCol?1:0)+8+selected.length+(inflOn?1:0)+1;
+    if(showYearly){
+      let pyPrin=0,pyInt=0,pyOpen=origP;
+      for(let pm=1;pm<=mElapsedRaw;pm++){
+        const pastMi=pastBal*r;
+        let pastMp=stdPmt-pastMi;
+        if(pastMp>pastBal)pastMp=pastBal;
+        if((pm-1)%12===0){pyOpen=pastBal;pyPrin=0;pyInt=0;}
+        pyPrin+=pastMp; pyInt+=pastMi;
+        pastBal=Math.max(0,pastBal-pastMp);
+        cumPmt+=pastMp+pastMi;
+        const isLastPast=(pm===mElapsedRaw);
+        const isYearEnd=(pm%12===0)||isLastPast;
+        if(isYearEnd){
+          const yrNum=Math.ceil(pm/12);
+          const pastDateObj=new Date(origDate.getFullYear(),origDate.getMonth()+pm-1,1);
+          const yrYear=pastDateObj.getFullYear();
+          const pAge=ageCol?(yrYear-birthYr):null;
+          let prow=`<td>${yrNum}</td>`;
+          if(ageCol)prow+=`<td class="age-td">${pAge}</td>`;
+          prow+=`<td>${yrYear}</td><td>${fmt(pyOpen)}</td><td>${fmt(pyPrin)}</td><td class="ci">${fmt(pyInt)}</td><td>${fmt(pyPrin+pyInt)}</td><td>${fmt(Math.max(0,pastBal))}</td><td>${fmt(cumPmt)}</td>`;
+          if(!amortOnly){prow+=`<td>${fmt(0)}</td>`;selected.forEach(()=>prow+=`<td>${fmt(0)}</td>`);if(inflOn)prow+=`<td>${fmt(0)}</td>`;}
+          html+=`<tr class="past-row">${prow}</tr>`;
+        }
       }
-      const pCalYear=origYear+py-1;
-      const pAge=ageCol?(pCalYear-birthYr):null;
-      let prow=`<td>${py}</td>`;
-      if(ageCol)prow+=`<td class="age-td">${pAge}</td>`;
-      prow+=`<td>${pCalYear}</td><td>${fmt(pyOpen)}</td><td>${fmt(pyPrin)}</td><td class="ci">${fmt(pyInt)}</td><td>${fmt(pyPrin+pyInt)}</td><td>${fmt(Math.max(0,pastBal))}</td>`;
-      selected.forEach(()=>prow+=`<td>—</td>`);
-      if(inflOn)prow+=`<td>—</td>`;
-      prow+=`<td>—</td>`;
-      html+=`<tr class="past-row">${prow}</tr>`;
+    } else {
+      for(let pm=1;pm<=mElapsedRaw;pm++){
+        const pastMi=pastBal*r;
+        let pastMp=stdPmt-pastMi;
+        if(pastMp>pastBal)pastMp=pastBal;
+        const pastOpen=pastBal;
+        pastBal=Math.max(0,pastBal-pastMp);
+        cumPmt+=pastMp+pastMi;
+        const pastDateObj=new Date(origDate.getFullYear(),origDate.getMonth()+pm-1,1);
+        const pastMonLbl=MOS[pastDateObj.getMonth()]+' '+pastDateObj.getFullYear();
+        const pAge=ageCol?(pastDateObj.getFullYear()-birthYr):null;
+        let prow=`<td>${pm}</td>`;
+        if(ageCol)prow+=`<td class="age-td">${pAge}</td>`;
+        prow+=`<td>${pastMonLbl}</td><td>${fmt(pastOpen)}</td><td>${fmt(pastMp)}</td><td class="ci">${fmt(pastMi)}</td><td>${fmt(pastMp+pastMi)}</td><td>${fmt(Math.max(0,pastBal))}</td><td>${fmt(cumPmt)}</td>`;
+        if(!amortOnly){prow+=`<td>${fmt(0)}</td>`;selected.forEach(()=>prow+=`<td>${fmt(0)}</td>`);if(inflOn)prow+=`<td>${fmt(0)}</td>`;}
+        html+=`<tr class="past-row">${prow}</tr>`;
+      }
     }
-    // divider row
-    html+=`<tr><td colspan="${pastColspan}" style="background:var(--surface2);text-align:center;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);padding:5px;border-bottom:2px solid var(--border)">▲ Past &nbsp;·&nbsp; Today ▼</td></tr>`;
   }
+  if(!showPastRows)cumPmt=stdPmt*mElapsed;
 
-  for(let y=1;y<=yearsLeft;y++){
-    let yInt=0,yPrin=0;
-    const mInYear=Math.min(12,mRemaining-(y-1)*12);
-    const yOpen=loanBal;
-    for(let m=0;m<mInYear;m++){
-      const mi=loanBal*r;
-      let mp=totalPmt-mi;
-      if(mp>loanBal)mp=loanBal;
-      yInt+=mi;yPrin+=mp;
-      loanBal=Math.max(0,loanBal-mp);
-    }
-    totIntShared+=yInt;
-    cumInfl*=(1+infl/100);
+  // yearly accumulation state
+  let yrPrin=0,yrInt=0,yrOpen=0,yrStarted=false;
+  const yrBV={};selected.forEach(b=>yrBV[b.id]=0);
+  let yrNetAdv=0,yrRealInv=0;
 
-    const calYear=startYear+y-1;
-    const age=ageCol?(calYear-birthYr):null;
-    labels.push("'"+String(calYear).slice(2));
+  // amort chart data arrays (cumulative, yearly snapshots)
+  const amortYearLabels=[],amortCumPrin=[],amortCumInt=[],amortBal=[];
+  let amortCP=0,amortCI=0;
+  // seed with today as starting point (matches Bankrate's origin tick)
+  amortYearLabels.push(MOS[today.getMonth()]+" '"+String(today.getFullYear()).slice(2));
+  amortCumPrin.push(0); amortCumInt.push(0); amortBal.push(Math.round(curBal));
+
+  for(let mo=1;mo<=mRemaining;mo++){
+    const moInt=loanBal*r;
+    let moPrin=totalPmt-moInt;
+    if(moPrin>loanBal)moPrin=loanBal;
+    const moOpen=loanBal;
+    loanBal=Math.max(0,loanBal-moPrin);
+    totIntShared+=moInt;
+    cumInfl*=(1+monthlyInflRate);
+    amortCP+=moPrin; amortCI+=moInt;
+    cumPmt+=moPrin+moInt;
+
+    const moDateObj=new Date(today.getFullYear(),today.getMonth()+mo-1,1);
+    const moLbl=MOS[moDateObj.getMonth()]+' '+moDateObj.getFullYear();
+    const moAge=ageCol?(moDateObj.getFullYear()-birthYr):null;
+    labels.push(MOS[moDateObj.getMonth()]+" '"+String(moDateObj.getFullYear()).slice(2));
     nomArr.push(0);realArr.push(0);
 
-    const isLastYear=(y===yearsLeft);
-    const remBal=isLastYear?0:Math.max(0,loanBal);
-    let row=`<td>${eYrs+y}</td>`;
-    if(ageCol)row+=`<td class="age-td">${age}</td>`;
-    row+=`<td>${calYear}</td><td>${fmt(yOpen)}</td><td>${fmt(yPrin)}</td><td class="ci">${fmt(yInt)}</td><td>${fmt(yPrin+yInt)}</td><td>${fmt(remBal)}</td>`;
+    const isLastMo=(mo===mRemaining);
+    const remBal=isLastMo?0:Math.max(0,loanBal);
 
-    selected.forEach((b,i)=>{
-      const st=bState[b.id];
-      if(y<=deployOffset){
-        // lump sum not yet deployed — sitting as cash
-        if(i===0){nomArr[y-1]=0;realArr[y-1]=0;}
-        row+=`<td style="color:var(--text2);opacity:.45">—</td>`;
-        seriesData[b.id].inv.push(0);
-      } else {
-        if(st.inv===0){
-          // first year of deployment: seed principal, grow only for the
-          // fractional portion of the year remaining after the deploy month
-          // (depFracYear = 1.0 for Jan, 0.5 for Jul, ~0.08 for Dec)
-          st.inv=lump*Math.pow(1+b.ret/100,depFracYear);
-        } else {
-          st.inv*=(1+b.ret/100); // full year for all subsequent years
-        }
-        if(i===0){nomArr[y-1]=Math.round(st.inv);realArr[y-1]=Math.round(st.inv/cumInfl);}
-        row+=`<td style="color:${b.color}">${fmt(st.inv)}</td>`;
-        seriesData[b.id].inv.push(Math.round(st.inv));
-      }
-    });
-
-    // net advantage for first selected
-    const firstSel=selected[0];
-    const netAdv=bState[firstSel.id].inv-lump-totIntShared;
-    if(inflOn){
-      const realInvY=bState[firstSel.id].inv/cumInfl;
-      row+=`<td class="cif">${fmt(realInvY)}</td>`;
+    // collect yearly amort chart snapshot
+    const isYearSnap=(mo%12===0)||isLastMo;
+    if(isYearSnap){
+      amortYearLabels.push(MOS[moDateObj.getMonth()]+" '"+String(moDateObj.getFullYear()).slice(2));
+      amortCumPrin.push(Math.round(amortCP));
+      amortCumInt.push(Math.round(amortCI));
+      amortBal.push(Math.round(remBal));
     }
-    row+=`<td class="cd ${netAdv>=0?'pos':'neg'}">${netAdv>=0?'+':''}${fmt(netAdv)}</td>`;
-    html+=`<tr>${row}</tr>`;
+
+    // update benchmark state (skip when amortOnly)
+    let firstSel=selected[0],netAdv=0;
+    if(!amortOnly){
+      selected.forEach((b,i)=>{
+        const st=bState[b.id];
+        if(mo<=deployOffsetMos){
+          if(i===0){nomArr[mo-1]=0;realArr[mo-1]=0;}
+          seriesData[b.id].inv.push(0);
+        } else {
+          if(st.inv===0){st.inv=lump;}
+          else{st.inv*=(1+bMonthlyRet[b.id]);}
+          if(i===0){nomArr[mo-1]=Math.round(st.inv);realArr[mo-1]=Math.round(st.inv/cumInfl);}
+          seriesData[b.id].inv.push(Math.round(st.inv));
+        }
+      });
+      netAdv=bState[firstSel.id].inv-remBal;
+    }
+
+    if(showYearly){
+      if(!yrStarted){yrOpen=moOpen;yrStarted=true;}
+      yrPrin+=moPrin; yrInt+=moInt;
+      if(!amortOnly){
+        selected.forEach(b=>yrBV[b.id]=bState[b.id].inv);
+        yrNetAdv=netAdv;
+        if(inflOn)yrRealInv=bState[firstSel.id].inv/cumInfl;
+      }
+      const isYearEnd=(mo%12===0)||isLastMo;
+      if(isYearEnd){
+        const yrNum=Math.ceil(mo/12);
+        const yrYear=moDateObj.getFullYear();
+        const yrAge=ageCol?(yrYear-birthYr):null;
+        let row=`<td>${yrNum}</td>`;
+        if(ageCol)row+=`<td class="age-td">${yrAge}</td>`;
+        row+=`<td>${yrYear}</td><td>${fmt(yrOpen)}</td><td>${fmt(yrPrin)}</td><td class="ci">${fmt(yrInt)}</td><td>${fmt(yrPrin+yrInt)}</td><td>${fmt(remBal)}</td><td>${fmt(cumPmt)}</td>`;
+        if(!amortOnly){
+          row+=`<td class="cd ${yrNetAdv>=0?'pos':'neg'}">${yrNetAdv>=0?'+':''}${fmt(yrNetAdv)}</td>`;
+          selected.forEach(b=>{
+            const v=yrBV[b.id];
+            row+=v>0?`<td style="color:${b.color}">${fmt(v)}</td>`:`<td style="color:var(--text2);opacity:.45">${fmt(0)}</td>`;
+          });
+          if(inflOn)row+=`<td class="cif">${fmt(yrRealInv)}</td>`;
+        }
+        html+=`<tr>${row}</tr>`;
+        yrPrin=0;yrInt=0;yrStarted=false;
+      }
+    } else {
+      let row=`<td>${mElapsedRaw+mo}</td>`;
+      if(ageCol)row+=`<td class="age-td">${moAge}</td>`;
+      row+=`<td>${moLbl}</td><td>${fmt(moOpen)}</td><td>${fmt(moPrin)}</td><td class="ci">${fmt(moInt)}</td><td>${fmt(moPrin+moInt)}</td><td>${fmt(remBal)}</td><td>${fmt(cumPmt)}</td>`;
+      if(!amortOnly){
+        row+=`<td class="cd ${netAdv>=0?'pos':'neg'}">${netAdv>=0?'+':''}${fmt(netAdv)}</td>`;
+        selected.forEach((b)=>{
+          const st=bState[b.id];
+          if(mo<=deployOffsetMos){
+            row+=`<td style="color:var(--text2);opacity:.45">${fmt(0)}</td>`;
+          } else {
+            row+=`<td style="color:${b.color}">${fmt(st.inv)}</td>`;
+          }
+        });
+        if(inflOn){
+          const realInvMo=bState[firstSel.id].inv/cumInfl;
+          row+=`<td class="cif">${fmt(realInvMo)}</td>`;
+        }
+      }
+      html+=`<tr>${row}</tr>`;
+    }
   }
   $('schedBody').innerHTML=html;
   $('schedMeta').textContent=`${origStr} · ${fmt(curBal)} rem`;
@@ -1635,7 +1881,7 @@ function update(){
   if(kpiIntSubEl)kpiIntSubEl.textContent='Paid: '+fmt(intPaid);
 
   // inflation panel
-  if(inflOn){
+  if(inflOn&&!amortOnly){
     const firstB=selected[0];
     const finalInv=bState[firstB.id].inv;
     const realInvEnd=finalInv/cumInfl;
@@ -1665,8 +1911,42 @@ function update(){
     renderInflCharts(labels,nomArr,realArr,realROI,realAPR);
   }
 
-  renderCharts(labels,seriesData,selected,totInt);
+  if(amortOnly){renderAmortChart(amortYearLabels,amortCumPrin,amortCumInt,amortBal);}
+  else{renderCharts(labels,seriesData,selected,totInt);}
   renderBenchCards();
+}
+
+/* ── AMORTIZATION CHART ── */
+let chartAmort=null;
+function renderAmortChart(yearLabels,cumPrin,cumInt,bal){
+  const c=gc();
+  const blue =isDark?'#60a5fa':'#1d4ed8'; const blueF =blue+'2a';
+  const green=isDark?'#4ade80':'#16a34a'; const greenF=green+'2a';
+  const amber=isDark?'#fb923c':'#ea580c'; const amberF=amber+'2a';
+  const yFmt=v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1e3).toFixed(0)+'K');
+  const fmtFull=v=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(v);
+  if(chartAmort)chartAmort.destroy();
+  chartAmort=new Chart($('amortChart').getContext('2d'),{
+    type:'line',
+    data:{labels:yearLabels,datasets:[
+      {label:'Loan Balance',      data:bal,     borderColor:blue, backgroundColor:blueF, borderWidth:1.5,fill:true,tension:.4,pointRadius:1.5,pointHoverRadius:5},
+      {label:'Cumulative Interest',data:cumInt, borderColor:amber,backgroundColor:amberF,borderWidth:1.5,fill:true,tension:.4,pointRadius:1.5,pointHoverRadius:5},
+      {label:'Cumulative Principal',data:cumPrin,borderColor:green,backgroundColor:greenF,borderWidth:1.5,fill:true,tension:.4,pointRadius:1.5,pointHoverRadius:5},
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      animation:{duration:280,easing:'easeOutQuart'},
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:true,position:'top',align:'start',labels:{color:c.tick,font:{family:'DM Sans',size:10.5},boxWidth:10,padding:14,usePointStyle:true,pointStyleWidth:8}},
+        tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmtFull(ctx.parsed.y)}`}}
+      },
+      scales:{
+        x:{grid:{color:c.grid},ticks:{color:c.tick,font:{family:'DM Sans',size:9},maxTicksLimit:10}},
+        y:{min:0,grid:{color:c.grid},ticks:{color:c.tick,font:{family:'DM Mono',size:9},callback:yFmt}}
+      }
+    }
+  });
 }
 
 /* ── CHARTS ── */
@@ -1709,7 +1989,7 @@ function renderCharts(labels,seriesData,selected,totInt){
     data:seriesData[b.id].inv,
     borderColor:resolveColor(b.color),
     backgroundColor:resolveColor(b.color)+'22',
-    borderWidth:2.5,fill:false,tension:.4,pointRadius:2,pointHoverRadius:5
+    borderWidth:1.5,fill:false,tension:.4,pointRadius:1.5,pointHoverRadius:5
   }));
 
   const topLeftLabels={
@@ -1748,8 +2028,8 @@ function renderInflCharts(labels,nomArr,realArr,realROI,realAPR){
             y:{beginAtZero:false,grid:{color:c.grid},ticks:{color:c.tick,font:{family:'DM Mono',size:9},callback:v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1e3).toFixed(0)+'K')}}}};
   if(chartIG)chartIG.destroy();
   chartIG=new Chart($('inflGrowthChart').getContext('2d'),{type:'line',data:{labels,datasets:[
-    {label:'Nominal',data:nomArr,borderColor:c.gain,backgroundColor:c.gainF,borderWidth:2,fill:true,tension:.4,pointRadius:2},
-    {label:"Real (Today's $)",data:realArr,borderColor:c.infl,backgroundColor:c.inflF,borderWidth:2,fill:true,tension:.4,pointRadius:2,borderDash:[5,3]}
+    {label:'Nominal',data:nomArr,borderColor:c.gain,backgroundColor:c.gainF,borderWidth:1.5,fill:true,tension:.4,pointRadius:1.5},
+    {label:"Real (Today's $)",data:realArr,borderColor:c.infl,backgroundColor:c.inflF,borderWidth:1.5,fill:true,tension:.4,pointRadius:1.5,borderDash:[5,3]}
   ]},options:base});
   if(chartID)chartID.destroy();
   chartID=new Chart($('inflDebtChart').getContext('2d'),{type:'bar',
@@ -1853,7 +2133,7 @@ function loadFromHash(){
   const params={};
   hash.split('&').forEach(p=>{const[k,v]=p.split('=');params[k]=decodeURIComponent(v||'')});
   if(params.o)$('origBal').value=params.o;
-  if(params.d)$('origDate').value=params.d;
+  if(params.d)setMonthCtrl('origDate',params.d);
   if(params.a)$('aprT').value=params.a;
   if(params.y)$('yrT').value=params.y;
   if(params.r){$('roiT').value=params.r;$('roiR').value=params.r;}
@@ -1862,7 +2142,7 @@ function loadFromHash(){
   if(params.by)$('birthYr').value=params.by;
   if(params.cb)$('curBal').value=params.cb;
   if(params.ls)$('lumpSum').value=params.ls;
-  if(params.dm&&$('deployMon'))$('deployMon').value=params.dm;
+  if(params.dm)setMonthCtrl('deployMon',params.dm);
   if(params.inf==='1'){$('inflToggle').checked=true;toggleInflation();}
   if(params.ir)$('inflT').value=params.ir;
 }
@@ -1915,7 +2195,7 @@ window.update=function(){_origUpdate();trackEngagement()};
   const dm=$('deployMon');
   if(!dm||dm.value)return;
   const t=new Date();
-  dm.value=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0');
+  setMonthCtrl('deployMon',t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0'));
 })();
 loadFromHash();
 renderBenchCards();
